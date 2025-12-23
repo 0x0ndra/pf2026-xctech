@@ -615,6 +615,23 @@
             z-index: -1;
         }
 
+        .start-btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 60%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: btnShimmer 4s ease-in-out infinite;
+        }
+
+        @keyframes btnShimmer {
+            0%, 100% { left: -100%; }
+            15%, 85% { left: -100%; }
+            50% { left: 150%; }
+        }
+
         .start-btn:hover {
             color: var(--black);
             transform: scale(1.05);
