@@ -492,7 +492,8 @@
             overflow: hidden;
         }
 
-        /* Animated background gradient */
+        /* Background gradient - disabled for video compatibility */
+        /*
         .intro::before {
             content: '';
             position: absolute;
@@ -507,6 +508,7 @@
             0%, 100% { opacity: 0.5; transform: scale(1); }
             50% { opacity: 1; transform: scale(1.1); }
         }
+        */
 
         .intro.hidden {
             opacity: 0;
@@ -532,11 +534,11 @@
         .intro-logo video {
             width: 100%;
             height: auto;
-            mask-image: linear-gradient(to bottom, black 90%, transparent),
-                        linear-gradient(to right, transparent, black 3%, black 97%, transparent);
+            mask-image: linear-gradient(to bottom, black 96%, transparent),
+                        linear-gradient(to right, transparent, black 2%, black 98%, transparent);
             mask-composite: intersect;
-            -webkit-mask-image: linear-gradient(to bottom, black 90%, transparent),
-                                linear-gradient(to right, transparent, black 3%, black 97%, transparent);
+            -webkit-mask-image: linear-gradient(to bottom, black 96%, transparent),
+                                linear-gradient(to right, transparent, black 2%, black 98%, transparent);
             -webkit-mask-composite: source-in;
         }
 
