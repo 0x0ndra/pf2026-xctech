@@ -2637,9 +2637,34 @@
         // =====================
         // Language Switching
         // =====================
-        function setLanguage(lang) {
+        function getInitialLanguage() {
+            // 1. Check URL parameter first
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlLang = urlParams.get('lang');
+            if (urlLang === 'cs' || urlLang === 'en') {
+                return urlLang;
+            }
+
+            // 2. Detect browser/system language
+            const browserLang = navigator.language || navigator.userLanguage;
+            if (browserLang && browserLang.toLowerCase().startsWith('cs')) {
+                return 'cs';
+            }
+
+            // 3. Default to English for all other languages
+            return 'en';
+        }
+
+        function setLanguage(lang, updateUrl = true) {
             currentLang = lang;
             document.documentElement.lang = lang;
+
+            // Update URL without reload
+            if (updateUrl) {
+                const url = new URL(window.location);
+                url.searchParams.set('lang', lang);
+                window.history.replaceState({}, '', url);
+            }
 
             elements.instructionsText.innerHTML = i18n[lang].instructions;
             elements.instructionsShort.textContent = i18n[lang].instructionsShort;
@@ -2676,6 +2701,9 @@
                 btn.classList.toggle('active', btn.dataset.lang === lang);
             });
         }
+
+        // Initialize language on load
+        setLanguage(getInitialLanguage(), true);
 
         elements.langBtns.forEach(btn => {
             btn.addEventListener('click', () => setLanguage(btn.dataset.lang));
