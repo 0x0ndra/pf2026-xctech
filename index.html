@@ -1404,6 +1404,29 @@
             font-size: 15px;
             letter-spacing: 0.2em;
             border-radius: 12px;
+            animation: btnPulse 2s ease-in-out infinite;
+        }
+
+        .finale-btn.big::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 60%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+            animation: btnShimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes btnPulse {
+            0%, 100% {
+                box-shadow: 0 4px 20px rgba(212, 168, 83, 0.4);
+                transform: scale(1);
+            }
+            50% {
+                box-shadow: 0 8px 40px rgba(212, 168, 83, 0.7);
+                transform: scale(1.03);
+            }
         }
 
         /* Video Overlay */
