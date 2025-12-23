@@ -532,8 +532,12 @@
         .intro-logo video {
             width: 100%;
             height: auto;
-            mix-blend-mode: lighten;
-            clip-path: inset(0 0 8px 0);
+            mask-image: linear-gradient(to bottom, black 90%, transparent),
+                        linear-gradient(to right, transparent, black 3%, black 97%, transparent);
+            mask-composite: intersect;
+            -webkit-mask-image: linear-gradient(to bottom, black 90%, transparent),
+                                linear-gradient(to right, transparent, black 3%, black 97%, transparent);
+            -webkit-mask-composite: source-in;
         }
 
         /* PF 2026 */
