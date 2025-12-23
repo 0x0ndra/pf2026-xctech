@@ -2511,7 +2511,8 @@
                 convG: 'G',
                 convB: 'B',
                 brightness: 'Jas',
-                message: 'Ať je jasný a ostrý.',
+                message: 'Ať je Váš obraz jasný a ostrý.',
+                finaleMessage: 'Ať je Váš rok jasný a ostrý.<br>Děkujeme za spolupráci.',
                 playVideo: 'Spustit projekci',
                 visit: 'Navštívit web',
                 success: 'Dokonalé!',
@@ -2546,7 +2547,8 @@
                 convG: 'G',
                 convB: 'B',
                 brightness: 'Brightness',
-                message: 'May it be clear and sharp.',
+                message: 'May your image be clear and sharp.',
+                finaleMessage: 'May your year be clear and sharp.<br>Thank you for your collaboration.',
                 playVideo: 'Start projection',
                 visit: 'Visit website',
                 success: 'Perfect!',
@@ -3184,6 +3186,11 @@
                 elements.successMessage.classList.remove('visible');
             }, 2500);
 
+            // Change main message to finale message
+            document.querySelectorAll('#main-message, .rgb-layer p').forEach(el => {
+                el.innerHTML = i18n[currentLang].finaleMessage;
+            });
+
             // Snap to perfect values
             Object.keys(CONFIG.targetValues).forEach(key => {
                 state.values[key] = CONFIG.targetValues[key];
@@ -3221,6 +3228,11 @@
             elements.controls.classList.remove('finale-hidden');
             elements.gameInstructions.classList.remove('finale-hidden');
             elements.progressContainer.classList.remove('finale-hidden');
+
+            // Reset main message
+            document.querySelectorAll('#main-message, .rgb-layer p').forEach(el => {
+                el.innerHTML = i18n[currentLang].message;
+            });
         }
 
         // =====================
