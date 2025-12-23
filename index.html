@@ -1,0 +1,3672 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PF 2026 | XC tech</title>
+    <meta name="description" content="PF 2026 - XC tech s.r.o.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --gold: #d4a853;
+            --gold-dim: #8a6d35;
+            --green: #4ade80;
+            --green-dim: #22863a;
+            --white: #ffffff;
+            --black: #000000;
+            --gray: #1a1a1a;
+            --gray-light: #2a2a2a;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--black);
+            color: var(--white);
+            min-height: 100vh;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body.dragging,
+        body.dragging * {
+            cursor: grabbing !important;
+            user-select: none !important;
+            -webkit-user-select: none !important;
+        }
+
+        /* Language Switcher */
+        .lang-switch {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Game Logo */
+        .game-logo {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+        }
+
+        .game-logo.visible {
+            opacity: 0.6;
+            pointer-events: auto;
+        }
+
+        .game-logo:hover {
+            opacity: 1;
+        }
+
+        .game-logo img {
+            height: 50px;
+            width: auto;
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.4);
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .lang-btn.active {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        .lang-btn:hover {
+            border-color: rgba(255,255,255,0.4);
+            color: rgba(255,255,255,0.6);
+        }
+
+        /* Main Cinema Container */
+        .cinema {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding-bottom: 180px;
+            background: radial-gradient(ellipse at 50% 0%, #0a0a0a 0%, #000000 100%);
+        }
+
+        /* Projector Light Cone */
+        .projector-cone {
+            position: fixed;
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 100vh;
+            background: linear-gradient(
+                180deg,
+                rgba(255, 248, 230, 0.15) 0%,
+                rgba(255, 248, 230, 0.03) 40%,
+                transparent 70%
+            );
+            clip-path: polygon(40% 0%, 60% 0%, 100% 100%, 0% 100%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Dust Particles Canvas */
+        #dust-canvas {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* Confetti Canvas */
+        #confetti-canvas {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        #confetti-canvas.active {
+            opacity: 1;
+        }
+
+        /* Ambient Lights */
+        .ambient-lights {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .ambient-light {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--gold);
+            border-radius: 50%;
+            box-shadow: 0 0 10px 2px rgba(212, 168, 83, 0.3);
+            opacity: 0.6;
+            animation: flicker 3s ease-in-out infinite;
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Screen */
+        .screen-container {
+            position: relative;
+            z-index: 10;
+            perspective: 1000px;
+        }
+
+        .screen {
+            width: 75vw;
+            max-width: 900px;
+            aspect-ratio: 1.85/1;
+            background: #0a0a0a;
+            border: 2px solid rgba(255,255,255,0.15);
+            box-shadow:
+                0 0 100px rgba(255, 248, 230, 0.05),
+                inset 0 0 50px rgba(0,0,0,0.5),
+                inset 0 0 0 8px rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            transition: box-shadow 0.6s ease, border-color 0.6s ease;
+        }
+
+        /* Test Pattern Corner Markers */
+        .test-pattern-corners {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+            transition: opacity 0.5s ease, filter 0.1s ease, transform 0.1s ease;
+        }
+
+        .test-pattern-corners.red {
+            mix-blend-mode: lighten;
+        }
+        .test-pattern-corners.red .corner-marker,
+        .test-pattern-corners.red .edge-marker {
+            background: #ff0000;
+            color: #ff0000;
+        }
+
+        .test-pattern-corners.green {
+            mix-blend-mode: lighten;
+        }
+        .test-pattern-corners.green .corner-marker,
+        .test-pattern-corners.green .edge-marker {
+            background: #00ff00;
+            color: #00ff00;
+        }
+
+        .test-pattern-corners.blue {
+            mix-blend-mode: lighten;
+        }
+        .test-pattern-corners.blue .corner-marker,
+        .test-pattern-corners.blue .edge-marker {
+            background: #0000ff;
+            color: #0000ff;
+        }
+
+        .test-pattern-corners.white {
+            opacity: 0;
+        }
+        .test-pattern-corners.white .corner-marker,
+        .test-pattern-corners.white .edge-marker {
+            background: white;
+            color: white;
+        }
+
+        .corner-marker {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            opacity: 0.6;
+        }
+
+        .corner-marker::before,
+        .corner-marker::after {
+            content: '';
+            position: absolute;
+            background: currentColor;
+        }
+
+        .corner-marker::before {
+            width: 100%;
+            height: 2px;
+        }
+
+        .corner-marker::after {
+            width: 2px;
+            height: 100%;
+        }
+
+        .corner-marker.top-left {
+            top: 15px;
+            left: 15px;
+            color: white;
+        }
+        .corner-marker.top-left::before { top: 0; left: 0; }
+        .corner-marker.top-left::after { top: 0; left: 0; }
+
+        .corner-marker.top-right {
+            top: 15px;
+            right: 15px;
+            color: white;
+        }
+        .corner-marker.top-right::before { top: 0; right: 0; }
+        .corner-marker.top-right::after { top: 0; right: 0; }
+
+        .corner-marker.bottom-left {
+            bottom: 15px;
+            left: 15px;
+            color: white;
+        }
+        .corner-marker.bottom-left::before { bottom: 0; left: 0; }
+        .corner-marker.bottom-left::after { bottom: 0; left: 0; }
+
+        .corner-marker.bottom-right {
+            bottom: 15px;
+            right: 15px;
+            color: white;
+        }
+        .corner-marker.bottom-right::before { bottom: 0; right: 0; }
+        .corner-marker.bottom-right::after { bottom: 0; right: 0; }
+
+        /* Edge markers */
+        .edge-marker {
+            position: absolute;
+            background: white;
+            opacity: 0.4;
+        }
+
+        .edge-marker.top {
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 2px;
+        }
+
+        .edge-marker.bottom {
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 2px;
+        }
+
+        .edge-marker.left {
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 2px;
+            height: 20px;
+        }
+
+        .edge-marker.right {
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 2px;
+            height: 20px;
+        }
+
+        /* RGB Layers for Convergence Effect */
+        .screen-content {
+            position: absolute;
+            inset: 0;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+            isolation: isolate;
+        }
+
+        /* Background Video Layers */
+        .bg-video-container {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+            background: transparent;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        .bg-video-container.visible {
+            opacity: 1;
+        }
+
+        .bg-video-layer {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: cover;
+            transition: transform 0.1s ease, filter 0.1s ease, opacity 0.3s ease;
+        }
+
+        .bg-video-layer.red {
+            filter: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='r'%3E%3CfeColorMatrix values='1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0'/%3E%3C/filter%3E%3C/svg%3E#r");
+            mix-blend-mode: lighten;
+        }
+
+        .bg-video-layer.green {
+            filter: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeColorMatrix values='0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0'/%3E%3C/filter%3E%3C/svg%3E#g");
+            mix-blend-mode: lighten;
+        }
+
+        .bg-video-layer.blue {
+            filter: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='b'%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0'/%3E%3C/filter%3E%3C/svg%3E#b");
+            mix-blend-mode: lighten;
+        }
+
+        .bg-video-layer.white {
+            opacity: 0;
+        }
+
+        .rgb-layer {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            transition: transform 0.1s ease, opacity 0.3s ease;
+            background: transparent;
+        }
+
+        .rgb-layer.red {
+            color: #ff0000;
+            mix-blend-mode: lighten;
+        }
+
+        .rgb-layer.green {
+            color: #00ff00;
+            mix-blend-mode: lighten;
+        }
+
+        .rgb-layer.blue {
+            color: #0000ff;
+            mix-blend-mode: lighten;
+        }
+
+        .rgb-layer h1, .screen-content h1 {
+            font-size: clamp(3rem, 10vw, 8rem);
+            font-weight: 300;
+            letter-spacing: 0.2em;
+            margin-bottom: 20px;
+        }
+
+        .rgb-layer p, .screen-content p {
+            font-size: clamp(1rem, 2.5vw, 1.5rem);
+            font-weight: 300;
+            letter-spacing: 0.1em;
+            margin-bottom: 10px;
+        }
+
+        .rgb-layer .signature, .screen-content .signature {
+            font-size: clamp(0.8rem, 2vw, 1rem);
+            margin-top: 30px;
+            letter-spacing: 0.15em;
+            font-weight: 400;
+        }
+
+        /* Main white layer (on top) */
+        .white-layer {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .white-layer h1 {
+            color: var(--white);
+        }
+
+        .white-layer p {
+            color: rgba(255,255,255,0.9);
+        }
+
+        .white-layer .signature {
+            color: var(--gold);
+        }
+
+        /* Intro Screen */
+        .intro {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: var(--black);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1), visibility 1s ease;
+            overflow: hidden;
+        }
+
+        /* Animated background gradient */
+        .intro::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(212, 168, 83, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(212, 168, 83, 0.05) 0%, transparent 50%);
+            animation: introGlow 8s ease-in-out infinite;
+        }
+
+        @keyframes introGlow {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.1); }
+        }
+
+        .intro.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        /* XC tech Logo */
+        .intro-logo {
+            width: clamp(200px, 40vw, 400px);
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+            animation: fadeSlideIn 1s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both;
+        }
+
+        .intro-logo img {
+            width: 100%;
+            height: auto;
+            filter: drop-shadow(0 0 30px rgba(255,255,255,0.1));
+        }
+
+        /* PF 2026 */
+        .intro-pf {
+            font-size: clamp(3rem, 10vw, 6rem);
+            font-weight: 200;
+            letter-spacing: 0.3em;
+            color: var(--gold);
+            text-shadow: 0 0 60px rgba(212, 168, 83, 0.4), 0 0 120px rgba(212, 168, 83, 0.2);
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+            animation: fadeSlideIn 1s cubic-bezier(0.4, 0, 0.2, 1) 0.4s both, goldShimmer 4s ease-in-out infinite;
+        }
+
+        @keyframes fadeSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes goldShimmer {
+            0%, 100% {
+                text-shadow: 0 0 60px rgba(212, 168, 83, 0.4), 0 0 120px rgba(212, 168, 83, 0.2);
+            }
+            50% {
+                text-shadow: 0 0 80px rgba(212, 168, 83, 0.6), 0 0 150px rgba(212, 168, 83, 0.3);
+            }
+        }
+
+        .intro-subtitle {
+            font-size: clamp(0.9rem, 2vw, 1.1rem);
+            font-weight: 300;
+            letter-spacing: 0.05em;
+            line-height: 1.8;
+            color: rgba(255,255,255,0.6);
+            max-width: 500px;
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, transparent 0%, rgba(212, 168, 83, 0.1) 100%);
+            border: 1px solid var(--gold);
+            color: var(--gold);
+            padding: 18px 60px;
+            font-size: 14px;
+            font-weight: 500;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+            animation: fadeSlideIn 1s cubic-bezier(0.4, 0, 0.2, 1) 0.6s both;
+        }
+
+        .start-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, var(--gold) 0%, #f0c97a 100%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            z-index: -1;
+        }
+
+        .start-btn:hover {
+            color: var(--black);
+            transform: scale(1.05);
+            box-shadow: 0 0 40px rgba(212, 168, 83, 0.4);
+        }
+
+        .start-btn:hover::before {
+            opacity: 1;
+        }
+
+        .start-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Game Instructions */
+        .game-instructions {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) scale(0.95);
+            z-index: 100;
+            text-align: center;
+            max-width: 700px;
+            padding: 25px 35px;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(135deg, rgba(212, 168, 83, 0.08) 0%, rgba(255,255,255,0.03) 100%);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(212, 168, 83, 0.25);
+            border-radius: 24px;
+            box-shadow:
+                0 8px 32px rgba(0,0,0,0.4),
+                0 0 60px rgba(212, 168, 83, 0.1),
+                inset 0 1px 0 rgba(255,255,255,0.1);
+            cursor: pointer;
+        }
+
+        .game-instructions.visible {
+            opacity: 1;
+            transform: translateX(-50%) scale(1);
+            animation: instructionsPulse 3s ease-in-out infinite;
+        }
+
+        /* Minimized state - smaller, less prominent */
+        .game-instructions.minimized {
+            padding: 12px 20px;
+            max-width: 400px;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            animation: none;
+        }
+
+        .game-instructions.minimized .instruction-icon {
+            display: none;
+        }
+
+        .game-instructions .instructions-short {
+            display: none;
+            margin: 0;
+        }
+
+        .game-instructions.minimized .instructions-full {
+            display: none;
+        }
+
+        .game-instructions.minimized .instructions-short {
+            display: block;
+            font-size: 0.75rem;
+            line-height: 1.5;
+            color: rgba(255,255,255,0.5);
+        }
+
+        /* Hover to expand minimized instructions */
+        .game-instructions.minimized:hover {
+            padding: 20px 30px;
+            max-width: 600px;
+            background: linear-gradient(135deg, rgba(212, 168, 83, 0.08) 0%, rgba(255,255,255,0.03) 100%);
+            border: 1px solid rgba(212, 168, 83, 0.25);
+            box-shadow:
+                0 8px 32px rgba(0,0,0,0.4),
+                0 0 60px rgba(212, 168, 83, 0.1),
+                inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+
+        .game-instructions.minimized:hover .instruction-icon {
+            display: block;
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+            animation: none;
+        }
+
+        .game-instructions.minimized:hover .instructions-full {
+            display: block;
+            font-size: 0.9rem;
+            line-height: 1.7;
+            color: rgba(255,255,255,0.85);
+        }
+
+        .game-instructions.minimized:hover .instructions-full strong {
+            color: var(--gold);
+        }
+
+        .game-instructions.minimized:hover .instructions-short {
+            display: none;
+        }
+
+        @keyframes instructionsPulse {
+            0%, 100% {
+                box-shadow:
+                    0 8px 32px rgba(0,0,0,0.4),
+                    0 0 60px rgba(212, 168, 83, 0.1),
+                    inset 0 1px 0 rgba(255,255,255,0.1);
+            }
+            50% {
+                box-shadow:
+                    0 8px 32px rgba(0,0,0,0.4),
+                    0 0 80px rgba(212, 168, 83, 0.2),
+                    inset 0 1px 0 rgba(255,255,255,0.1);
+            }
+        }
+
+        .game-instructions .instruction-icon {
+            font-size: 2rem;
+            margin-bottom: 12px;
+            display: block;
+            animation: iconBounce 2s ease-in-out infinite;
+        }
+
+        @keyframes iconBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .game-instructions p {
+            font-size: clamp(0.95rem, 2vw, 1.1rem);
+            font-weight: 400;
+            line-height: 1.8;
+            color: rgba(255,255,255,0.9);
+            margin: 0;
+        }
+
+        .game-instructions p strong {
+            color: var(--gold);
+            font-weight: 600;
+        }
+
+        .game-instructions.finale-hidden {
+            opacity: 0 !important;
+            transform: translateX(-50%) translateY(-20px) scale(0.95) !important;
+            pointer-events: none !important;
+            animation: none !important;
+        }
+
+        /* Tooltips */
+        .control-group {
+            position: relative;
+        }
+
+        .control-tooltip {
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%) translateY(5px);
+            background: rgba(0,0,0,0.9);
+            color: rgba(255,255,255,0.9);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 400;
+            letter-spacing: 0.02em;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            pointer-events: none;
+            z-index: 200;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .control-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: rgba(0,0,0,0.9);
+        }
+
+        .control-group:hover .control-tooltip {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .control-group.locked .control-tooltip {
+            display: none;
+        }
+
+        /* Timer - positioned in top left */
+        .timer-container {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            opacity: 0;
+            transition: all 0.6s ease;
+        }
+
+        .timer-container.visible {
+            opacity: 1;
+        }
+
+        .timer-container.finale-hidden {
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+
+        .timer-label {
+            font-size: 9px;
+            font-weight: 500;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.4);
+        }
+
+        .timer-display {
+            font-size: clamp(1.2rem, 3vw, 1.8rem);
+            font-weight: 300;
+            letter-spacing: 0.05em;
+            color: var(--gold);
+            font-variant-numeric: tabular-nums;
+            text-shadow: 0 0 20px rgba(212, 168, 83, 0.3);
+        }
+
+        .timer-display.running {
+            color: var(--white);
+            text-shadow: none;
+        }
+
+        /* Progress Bar - above controls */
+        .progress-container {
+            position: fixed;
+            bottom: 240px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 60;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            opacity: 0;
+            transition: opacity 0.6s ease;
+        }
+
+        .progress-container.visible {
+            opacity: 1;
+        }
+
+        .progress-label {
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.4);
+        }
+
+        .progress-bar {
+            display: flex;
+            gap: 6px;
+        }
+
+        .progress-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.2);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .progress-dot.active {
+            background: var(--green);
+            border-color: var(--green);
+            box-shadow: 0 0 12px var(--green);
+            transform: scale(1.2);
+        }
+
+        .progress-dot.rgb-dot.active {
+            background: linear-gradient(135deg, #ff6b6b, #69db7c, #74c0fc);
+            border-color: transparent;
+            box-shadow: 0 0 12px rgba(255,255,255,0.5);
+        }
+
+        /* Controls Panel */
+        .controls {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            background: linear-gradient(to top, rgba(0,0,0,0.98) 0%, rgba(0,0,0,0.8) 60%, transparent 100%);
+            padding: 25px 40px 35px;
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            flex-wrap: wrap;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s ease;
+        }
+
+        .controls.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            min-width: 90px;
+            padding: 12px 8px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .control-group:hover {
+            background: rgba(255,255,255,0.04);
+            border-color: rgba(255,255,255,0.1);
+        }
+
+        .control-group.hot {
+            border-color: rgba(212, 168, 83, 0.3);
+            background: rgba(212, 168, 83, 0.05);
+        }
+
+        .control-group.locked {
+            border-color: rgba(74, 222, 128, 0.3);
+            background: rgba(74, 222, 128, 0.05);
+        }
+
+        .control-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.5);
+            transition: all 0.3s ease;
+        }
+
+        .control-group.hot .control-label {
+            color: var(--gold);
+        }
+
+        .control-group.locked .control-label {
+            color: var(--green);
+        }
+
+        /* Lock indicator */
+        .lock-indicator {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            transition: all 0.3s ease;
+        }
+
+        .control-group.hot .lock-indicator {
+            background: var(--gold-dim);
+            box-shadow: 0 0 8px var(--gold-dim);
+        }
+
+        .control-group.locked .lock-indicator {
+            background: var(--green);
+            box-shadow: 0 0 12px var(--green);
+            animation: lockPulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes lockPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.8; }
+        }
+
+        /* Custom Slider */
+        .slider-container {
+            width: 90px;
+            height: 8px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 4px;
+            position: relative;
+            cursor: pointer;
+            overflow: visible;
+        }
+
+        /* Target zone hint */
+        .slider-target {
+            position: absolute;
+            top: -2px;
+            bottom: -2px;
+            width: 12px;
+            background: rgba(74, 222, 128, 0.15);
+            border-radius: 4px;
+            transform: translateX(-50%);
+            pointer-events: none;
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+
+        .control-group.locked .slider-target {
+            opacity: 0;
+        }
+
+        .slider-track {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            background: var(--gold-dim);
+            border-radius: 4px;
+            transition: width 0.05s ease, background 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .control-group.hot .slider-track {
+            background: var(--gold);
+            box-shadow: 0 0 10px rgba(212, 168, 83, 0.4);
+        }
+
+        .control-group.locked:not(.rgb-control) .slider-track {
+            background: var(--green);
+            box-shadow: 0 0 12px rgba(74, 222, 128, 0.5);
+        }
+
+        .slider-thumb {
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            background: var(--gold);
+            border-radius: 50%;
+            cursor: grab;
+            transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease, background 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 0 0 2px rgba(212, 168, 83, 0.2);
+            z-index: 2;
+        }
+
+        .control-group.hot .slider-thumb {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 0 15px rgba(212, 168, 83, 0.6), 0 0 0 3px rgba(212, 168, 83, 0.3);
+        }
+
+        .control-group.locked:not(.rgb-control) .slider-thumb {
+            background: var(--green);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 0 20px rgba(74, 222, 128, 0.7), 0 0 0 3px rgba(74, 222, 128, 0.3);
+            animation: thumbLock 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes thumbLock {
+            0% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.4); }
+            100% { transform: translate(-50%, -50%) scale(1); }
+        }
+
+        /* RGB sliders keep their color when locked, just add glow */
+        .control-group.rgb-control.hot .slider-thumb {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 0 15px currentColor;
+        }
+
+        .control-group.rgb-control.locked .slider-thumb {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 0 25px currentColor;
+            animation: thumbLock 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .control-group.rgb-control.locked .slider-track {
+            opacity: 1;
+        }
+
+        .control-group.rgb-control .lock-indicator {
+            background: rgba(255,255,255,0.15);
+        }
+
+        .control-group.rgb-control[data-control="convR"].hot .lock-indicator,
+        .control-group.rgb-control[data-control="convR"].locked .lock-indicator {
+            background: #ff6b6b;
+            box-shadow: 0 0 10px #ff6b6b;
+        }
+
+        .control-group.rgb-control[data-control="convG"].hot .lock-indicator,
+        .control-group.rgb-control[data-control="convG"].locked .lock-indicator {
+            background: #69db7c;
+            box-shadow: 0 0 10px #69db7c;
+        }
+
+        .control-group.rgb-control[data-control="convB"].hot .lock-indicator,
+        .control-group.rgb-control[data-control="convB"].locked .lock-indicator {
+            background: #74c0fc;
+            box-shadow: 0 0 10px #74c0fc;
+        }
+
+        .control-group.rgb-control.locked .lock-indicator {
+            animation: lockPulse 1.5s ease-in-out infinite;
+        }
+
+        .slider-thumb:hover {
+            transform: translate(-50%, -50%) scale(1.15);
+        }
+
+        .slider-thumb:active {
+            cursor: grabbing;
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+
+        .slider-thumb.dragging {
+            cursor: grabbing;
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+
+        /* Value display */
+        .slider-value {
+            font-size: 9px;
+            font-weight: 500;
+            color: rgba(255,255,255,0.3);
+            font-variant-numeric: tabular-nums;
+            min-width: 24px;
+            text-align: center;
+            transition: color 0.3s ease;
+        }
+
+        .control-group.hot .slider-value {
+            color: var(--gold);
+        }
+
+        .control-group.locked .slider-value {
+            color: var(--green);
+        }
+
+        /* Control Section (for grouping) */
+        .control-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 15px 12px;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .control-section:hover {
+            background: rgba(255,255,255,0.03);
+            border-color: rgba(255,255,255,0.08);
+        }
+
+        .section-label {
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 4px;
+        }
+
+        .section-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .convergence-section .control-group {
+            min-width: 55px;
+            padding: 10px 6px;
+            background: transparent;
+            border: none;
+        }
+
+        .convergence-section .control-group:hover {
+            background: rgba(255,255,255,0.03);
+        }
+
+        .convergence-section .slider-container {
+            width: 50px;
+        }
+
+        /* Sound Toggle */
+        .sound-toggle {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 100;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.4);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            opacity: 0;
+        }
+
+        .sound-toggle.visible {
+            opacity: 1;
+        }
+
+        .sound-toggle.active {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        .sound-toggle svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Finale State */
+        .cinema.finale .screen {
+            border-color: rgba(212, 168, 83, 0.3);
+            box-shadow:
+                0 0 150px rgba(255, 248, 230, 0.2),
+                0 0 80px rgba(212, 168, 83, 0.15),
+                0 0 40px rgba(255, 255, 255, 0.1),
+                inset 0 0 50px rgba(0,0,0,0.3);
+            animation: finalePulse 2s ease-in-out infinite;
+        }
+
+        .cinema.finale .test-pattern-corners {
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        @keyframes finalePulse {
+            0%, 100% {
+                box-shadow:
+                    0 0 150px rgba(255, 248, 230, 0.2),
+                    0 0 80px rgba(212, 168, 83, 0.15),
+                    0 0 40px rgba(255, 255, 255, 0.1),
+                    inset 0 0 50px rgba(0,0,0,0.3);
+            }
+            50% {
+                box-shadow:
+                    0 0 180px rgba(255, 248, 230, 0.25),
+                    0 0 100px rgba(212, 168, 83, 0.2),
+                    0 0 50px rgba(255, 255, 255, 0.15),
+                    inset 0 0 50px rgba(0,0,0,0.3);
+            }
+        }
+
+        /* Hide controls and progress on finale */
+        .cinema.finale ~ .controls,
+        .cinema.finale ~ #controls {
+            opacity: 0;
+            transform: translateY(20px);
+            pointer-events: none;
+        }
+
+        /* Also hide via JS-added class */
+        .controls.finale-hidden {
+            opacity: 0 !important;
+            transform: translateY(20px) !important;
+            pointer-events: none !important;
+        }
+
+        .progress-container.finale-hidden {
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+
+        /* Finale Buttons */
+        .finale-buttons {
+            position: fixed;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%) translateY(30px);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.3s;
+        }
+
+        .finale-buttons.visible {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .finale-time {
+            font-size: 14px;
+            font-weight: 300;
+            color: rgba(255,255,255,0.6);
+            letter-spacing: 0.1em;
+        }
+
+        .finale-time span {
+            color: var(--gold);
+            font-weight: 500;
+        }
+
+        .finale-btn {
+            background: rgba(0,0,0,0.6);
+            border: 2px solid var(--gold);
+            color: var(--gold);
+            padding: 15px 30px;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .finale-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, var(--gold) 0%, #f0c97a 50%, var(--gold) 100%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            z-index: -1;
+        }
+
+        .finale-btn:hover {
+            color: var(--black);
+            transform: scale(1.05);
+            box-shadow: 0 10px 40px rgba(212, 168, 83, 0.4);
+        }
+
+        .finale-btn:hover::before {
+            opacity: 1;
+        }
+
+        .finale-btn.primary {
+            background: linear-gradient(135deg, var(--gold) 0%, #f0c97a 100%);
+            color: var(--black);
+            border: none;
+            box-shadow: 0 4px 20px rgba(212, 168, 83, 0.3);
+        }
+
+        .finale-btn.primary::before {
+            background: linear-gradient(135deg, #f0c97a 0%, var(--white) 100%);
+        }
+
+        .finale-btn.primary:hover {
+            box-shadow: 0 10px 50px rgba(212, 168, 83, 0.5);
+        }
+
+        .finale-btn.big {
+            padding: 22px 60px;
+            font-size: 15px;
+            letter-spacing: 0.2em;
+            border-radius: 12px;
+        }
+
+        /* Video Overlay */
+        .video-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 300;
+            background: rgba(0,0,0,0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.5s ease;
+        }
+
+        .video-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .video-container {
+            position: relative;
+            width: 90vw;
+            max-width: 1000px;
+        }
+
+        .video-container video {
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 0 60px rgba(212, 168, 83, 0.3);
+        }
+
+        .video-close {
+            position: absolute;
+            top: -50px;
+            right: 0;
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.3);
+            color: rgba(255,255,255,0.7);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .video-close:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        /* Leaderboard Overlay */
+        .leaderboard-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 400;
+            background: linear-gradient(180deg, rgba(0,0,0,0.98) 0%, rgba(10,10,10,0.98) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.5s ease;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .leaderboard-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .leaderboard-container {
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .leaderboard-header {
+            position: relative;
+            overflow: hidden;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            background: #000;
+        }
+
+        .leaderboard-video-container {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+            background: #000;
+        }
+
+        .leaderboard-video-layer {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            min-width: 100%;
+            min-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: cover;
+            transition: transform 0.1s ease, filter 0.1s ease, opacity 0.3s ease;
+        }
+
+        .leaderboard-video-layer.red {
+            filter: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='r'%3E%3CfeColorMatrix values='1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0'/%3E%3C/filter%3E%3C/svg%3E#r");
+            mix-blend-mode: lighten;
+        }
+
+        .leaderboard-video-layer.green {
+            filter: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeColorMatrix values='0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0'/%3E%3C/filter%3E%3C/svg%3E#g");
+            mix-blend-mode: lighten;
+        }
+
+        .leaderboard-video-layer.blue {
+            filter: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='b'%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0'/%3E%3C/filter%3E%3C/svg%3E#b");
+            mix-blend-mode: lighten;
+        }
+
+        .leaderboard-video-layer.white {
+            opacity: 0;
+        }
+
+        .leaderboard-header-content {
+            position: relative;
+            z-index: 1;
+            padding: 40px 20px;
+            background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.5) 100%);
+        }
+
+        .leaderboard-header h1 {
+            font-size: clamp(3rem, 10vw, 5rem);
+            font-weight: 200;
+            letter-spacing: 0.2em;
+            color: var(--gold);
+            margin: 0 0 10px 0;
+            text-shadow: 0 0 60px rgba(212, 168, 83, 0.5);
+        }
+
+        .leaderboard-subtitle {
+            font-size: 1.1rem;
+            font-weight: 300;
+            color: rgba(255,255,255,0.7);
+            letter-spacing: 0.1em;
+            margin: 0;
+        }
+
+        /* Score Form */
+        .score-form {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .your-time {
+            font-size: 1rem;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 20px;
+        }
+
+        .your-time strong {
+            font-size: 1.8rem;
+            font-weight: 300;
+            color: var(--gold);
+            margin-left: 10px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .form-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .form-fields input {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 1rem;
+            color: white;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .form-fields input[type="email"] {
+            grid-column: 1 / -1;
+        }
+
+        .form-fields input::placeholder {
+            color: rgba(255,255,255,0.4);
+        }
+
+        .form-fields input:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 20px rgba(212, 168, 83, 0.2);
+        }
+
+        .submit-score-btn {
+            background: linear-gradient(135deg, var(--gold) 0%, #c9a227 100%);
+            color: black;
+            border: none;
+            border-radius: 8px;
+            padding: 14px 40px;
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submit-score-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(212, 168, 83, 0.3);
+        }
+
+        .submit-score-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Score Submitted */
+        .score-submitted {
+            background: rgba(212, 168, 83, 0.1);
+            border: 1px solid rgba(212, 168, 83, 0.3);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .rank-display {
+            font-size: 1.2rem;
+            color: rgba(255,255,255,0.8);
+        }
+
+        .rank-display strong {
+            font-size: 2.5rem;
+            font-weight: 300;
+            color: var(--gold);
+            display: block;
+            margin-top: 10px;
+        }
+
+        /* Leaderboard Table */
+        .leaderboard-table-container {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 30px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .leaderboard-table thead {
+            position: sticky;
+            top: 0;
+            background: rgba(20,20,20,0.98);
+        }
+
+        .leaderboard-table th {
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 500;
+            color: rgba(255,255,255,0.5);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .leaderboard-table th:first-child {
+            text-align: center;
+            width: 50px;
+        }
+
+        .leaderboard-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            color: rgba(255,255,255,0.8);
+        }
+
+        .leaderboard-table td:first-child {
+            text-align: center;
+            font-weight: 600;
+            color: rgba(255,255,255,0.4);
+        }
+
+        .leaderboard-table tr:nth-child(1) td:first-child { color: #ffd700; }
+        .leaderboard-table tr:nth-child(2) td:first-child { color: #c0c0c0; }
+        .leaderboard-table tr:nth-child(3) td:first-child { color: #cd7f32; }
+
+        .leaderboard-table tr.highlight {
+            background: rgba(212, 168, 83, 0.1);
+        }
+
+        .leaderboard-table tr.highlight td {
+            color: var(--gold);
+        }
+
+        .leaderboard-table tbody tr:hover {
+            background: rgba(255,255,255,0.03);
+        }
+
+        .close-leaderboard-btn {
+            background: transparent;
+            color: rgba(255,255,255,0.6);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            padding: 12px 30px;
+            font-size: 0.9rem;
+            font-weight: 400;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .close-leaderboard-btn:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        /* Success message - above the screen */
+        .success-message {
+            position: fixed;
+            top: 15%;
+            left: 50%;
+            transform: translateX(-50%) scale(0.5);
+            z-index: 150;
+            font-size: clamp(2rem, 6vw, 4rem);
+            font-weight: 200;
+            letter-spacing: 0.3em;
+            color: var(--gold);
+            text-shadow:
+                0 0 60px rgba(212, 168, 83, 0.8),
+                0 0 120px rgba(212, 168, 83, 0.4);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .success-message.visible {
+            opacity: 1;
+            transform: translateX(-50%) scale(1);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .screen {
+                width: 95vw;
+                max-width: none;
+                aspect-ratio: 4/3;
+            }
+
+            .rgb-layer h1, .screen-content h1, .white-layer h1 {
+                font-size: clamp(1.8rem, 8vw, 4rem);
+                margin-bottom: 10px;
+            }
+
+            .rgb-layer p, .screen-content p, .white-layer p {
+                font-size: clamp(0.7rem, 2.5vw, 1rem);
+                margin-bottom: 5px;
+            }
+
+            .signature {
+                font-size: clamp(0.6rem, 2vw, 0.8rem);
+            }
+
+            .game-instructions {
+                top: 55px;
+                padding: 15px 18px;
+                max-width: calc(100vw - 30px);
+                border-radius: 16px;
+            }
+
+            .game-instructions .instruction-icon {
+                font-size: 1.5rem;
+                margin-bottom: 8px;
+            }
+
+            .game-instructions p {
+                font-size: 0.8rem;
+                line-height: 1.6;
+            }
+
+            .game-instructions.minimized {
+                top: 10px;
+                padding: 8px 12px;
+                max-width: 200px;
+            }
+
+            .game-instructions.minimized p {
+                font-size: 0.65rem;
+            }
+
+            .corner-marker {
+                width: 20px;
+                height: 20px;
+            }
+
+            .corner-marker.top-left { top: 8px; left: 8px; bottom: auto; right: auto; }
+            .corner-marker.top-right { top: 8px; right: 8px; bottom: auto; left: auto; }
+            .corner-marker.bottom-left { bottom: 8px; left: 8px; top: auto; right: auto; }
+            .corner-marker.bottom-right { bottom: 8px; right: 8px; top: auto; left: auto; }
+
+            .edge-marker.top { top: 8px; bottom: auto; width: 15px; }
+            .edge-marker.bottom { bottom: 8px; top: auto; width: 15px; }
+            .edge-marker.left { left: 8px; right: auto; height: 15px; }
+            .edge-marker.right { right: 8px; left: auto; height: 15px; }
+
+            .control-tooltip {
+                display: none;
+            }
+
+            .timer-container {
+                top: 10px;
+                left: 10px;
+                gap: 5px;
+            }
+
+            .timer-label {
+                font-size: 7px;
+            }
+
+            .timer-display {
+                font-size: 1rem;
+            }
+
+            .progress-container {
+                position: relative;
+                bottom: auto;
+                left: auto;
+                transform: none;
+                margin: 15px auto;
+            }
+
+            .progress-label {
+                font-size: 8px;
+            }
+
+            .progress-dot {
+                width: 10px;
+                height: 10px;
+            }
+
+            .controls {
+                padding: 12px 10px 20px;
+                gap: 8px;
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr;
+                grid-template-rows: auto auto auto;
+            }
+
+            .control-group {
+                min-width: auto;
+                padding: 6px 4px;
+                border-radius: 8px;
+            }
+
+            .control-group[data-control="focus"],
+            .control-group[data-control="zoom"],
+            .control-group[data-control="shift"] {
+                /* First row - these are auto-placed */
+            }
+
+            .convergence-section {
+                grid-column: 1 / -1;
+            }
+
+            .control-group[data-control="brightness"] {
+                grid-column: 1 / -1;
+                max-width: 120px;
+                justify-self: center;
+            }
+
+            .slider-container {
+                width: 70px;
+                height: 8px;
+            }
+
+            .slider-thumb {
+                width: 22px;
+                height: 22px;
+            }
+
+            .slider-value {
+                font-size: 7px;
+            }
+
+            .control-label {
+                font-size: 7px;
+            }
+
+            .section-label {
+                font-size: 7px;
+            }
+
+            .control-section {
+                padding: 8px 6px;
+                border-radius: 10px;
+            }
+
+            .section-controls {
+                gap: 4px;
+            }
+
+            .convergence-section .control-group {
+                min-width: 38px;
+                padding: 5px 3px;
+            }
+
+            .convergence-section .slider-container {
+                width: 60px;
+            }
+
+            .lang-switch {
+                top: auto;
+                bottom: 10px;
+                right: 10px;
+                left: auto;
+            }
+
+            .sound-toggle {
+                bottom: 10px;
+                left: 10px;
+                width: 35px;
+                height: 35px;
+            }
+
+            .finale-buttons {
+                bottom: 120px;
+                flex-direction: column;
+                align-items: center;
+                gap: 15px;
+            }
+
+            .finale-btn.big {
+                padding: 16px 40px;
+                font-size: 13px;
+            }
+
+            .finale-time {
+                font-size: 12px;
+            }
+
+            .success-message {
+                top: 8%;
+                font-size: clamp(1.5rem, 5vw, 2.5rem);
+            }
+
+            .intro-pf {
+                font-size: clamp(2.5rem, 12vw, 5rem);
+            }
+
+            .start-btn {
+                padding: 14px 40px;
+                font-size: 12px;
+            }
+
+            .cinema {
+                padding-bottom: 180px;
+            }
+
+            .game-logo {
+                bottom: 160px;
+                right: 10px;
+            }
+
+            .game-logo img {
+                height: 35px;
+            }
+
+            /* Leaderboard mobile */
+            .leaderboard-container {
+                padding: 20px 0;
+            }
+
+            .leaderboard-header {
+                border-radius: 16px;
+                margin-bottom: 20px;
+            }
+
+            .leaderboard-header-content {
+                padding: 30px 15px;
+            }
+
+            .leaderboard-header h1 {
+                font-size: clamp(2.5rem, 12vw, 4rem);
+            }
+
+            .leaderboard-subtitle {
+                font-size: 0.9rem;
+            }
+
+            .score-form {
+                padding: 20px 15px;
+            }
+
+            .form-fields {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .your-time strong {
+                font-size: 1.5rem;
+            }
+
+            .leaderboard-table-container {
+                max-height: 200px;
+            }
+
+            .leaderboard-table {
+                font-size: 0.8rem;
+            }
+
+            .leaderboard-table th,
+            .leaderboard-table td {
+                padding: 10px 8px;
+            }
+        }
+
+        /* Landscape mode on phones */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .cinema {
+                padding-bottom: 80px;
+            }
+
+            .screen {
+                width: 60vw;
+                max-width: none;
+            }
+
+            .controls {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+                padding: 8px 15px 12px;
+                gap: 10px;
+            }
+
+            .control-group {
+                min-width: 45px;
+                padding: 4px 3px;
+            }
+
+            .convergence-section {
+                grid-column: unset;
+            }
+
+            .control-group[data-control="brightness"] {
+                grid-column: unset;
+                max-width: unset;
+                justify-self: unset;
+            }
+
+            .slider-container {
+                width: 45px;
+                height: 5px;
+            }
+
+            .slider-thumb {
+                width: 16px;
+                height: 16px;
+            }
+
+            .control-label, .slider-value, .section-label {
+                font-size: 6px;
+            }
+
+            .game-instructions {
+                top: 5px;
+                padding: 8px 12px;
+                max-width: 250px;
+            }
+
+            .game-instructions p {
+                font-size: 0.65rem;
+            }
+
+            .timer-container {
+                top: 5px;
+                left: 5px;
+            }
+
+            .progress-container {
+                position: fixed;
+                bottom: 70px;
+                left: 50%;
+                transform: translateX(-50%);
+                margin: 0;
+            }
+
+            .progress-dot {
+                width: 7px;
+                height: 7px;
+            }
+
+            .game-logo {
+                bottom: 5px;
+                right: 5px;
+            }
+
+            .game-logo img {
+                height: 25px;
+            }
+
+            .lang-switch {
+                bottom: 5px;
+                right: 5px;
+            }
+
+            .sound-toggle {
+                bottom: 5px;
+                left: 5px;
+                width: 30px;
+                height: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Language Switcher -->
+    <div class="lang-switch">
+        <button class="lang-btn active" data-lang="cs">CZ</button>
+        <button class="lang-btn" data-lang="en">EN</button>
+    </div>
+
+    <!-- XC tech Logo (game screen) -->
+    <a href="https://xctech.cz" target="_blank" class="game-logo" id="game-logo">
+        <img src="logo_white.png" alt="XC tech">
+    </a>
+
+    <!-- Intro Screen -->
+    <div class="intro" id="intro">
+        <div class="intro-logo">
+            <img src="logo_white.png" alt="XC tech">
+        </div>
+        <div class="intro-pf">PF 2026</div>
+        <button class="start-btn" id="start-btn">
+            <span data-i18n="start">Začít</span>
+        </button>
+    </div>
+
+    <!-- Game Instructions -->
+    <div class="game-instructions" id="game-instructions">
+        <span class="instruction-icon">🎯</span>
+        <p id="instructions-text" class="instructions-full"><strong>Projekce má za chvilku začít!</strong><br>Pohybujte posuvníky, dokud nebude obraz perfektní.<br>Čím blíž jste, tím více posuvník svítí. Zkuste to zvládnout <strong>co nejrychleji</strong>!</p>
+        <p id="instructions-short" class="instructions-short">Nastavte obraz posuvníky</p>
+    </div>
+
+    <!-- Timer -->
+    <div class="timer-container" id="timer-container">
+        <span class="timer-label" data-i18n="time">Čas</span>
+        <div class="timer-display" id="timer-display">00:00</div>
+    </div>
+
+    <!-- Main Cinema -->
+    <div class="cinema" id="cinema">
+        <!-- Projector Light Cone -->
+        <div class="projector-cone"></div>
+
+        <!-- Dust Particles -->
+        <canvas id="dust-canvas"></canvas>
+
+        <!-- Confetti -->
+        <canvas id="confetti-canvas"></canvas>
+
+        <!-- Ambient Lights -->
+        <div class="ambient-lights" id="ambient-lights"></div>
+
+        <!-- Screen -->
+        <div class="screen-container">
+            <div class="screen" id="screen">
+                <div class="screen-content" id="screen-content">
+                    <!-- Background Video RGB Layers -->
+                    <div class="bg-video-container" id="bg-video-container">
+                        <video class="bg-video-layer red" id="bg-video-red" muted loop playsinline>
+                            <source src="video/xctech_BG_background.mp4" type="video/mp4">
+                        </video>
+                        <video class="bg-video-layer green" id="bg-video-green" muted loop playsinline>
+                            <source src="video/xctech_BG_background.mp4" type="video/mp4">
+                        </video>
+                        <video class="bg-video-layer blue" id="bg-video-blue" muted loop playsinline>
+                            <source src="video/xctech_BG_background.mp4" type="video/mp4">
+                        </video>
+                        <video class="bg-video-layer white" id="bg-video-white" muted loop playsinline>
+                            <source src="video/xctech_BG_background.mp4" type="video/mp4">
+                        </video>
+                    </div>
+                    <!-- Test Pattern Markers (inside content so they blur too) -->
+                    <!-- Test Pattern RGB Layers -->
+                    <div class="test-pattern-corners red" id="test-pattern-red">
+                        <div class="corner-marker top-left"></div>
+                        <div class="corner-marker top-right"></div>
+                        <div class="corner-marker bottom-left"></div>
+                        <div class="corner-marker bottom-right"></div>
+                        <div class="edge-marker top"></div>
+                        <div class="edge-marker bottom"></div>
+                        <div class="edge-marker left"></div>
+                        <div class="edge-marker right"></div>
+                    </div>
+                    <div class="test-pattern-corners green" id="test-pattern-green">
+                        <div class="corner-marker top-left"></div>
+                        <div class="corner-marker top-right"></div>
+                        <div class="corner-marker bottom-left"></div>
+                        <div class="corner-marker bottom-right"></div>
+                        <div class="edge-marker top"></div>
+                        <div class="edge-marker bottom"></div>
+                        <div class="edge-marker left"></div>
+                        <div class="edge-marker right"></div>
+                    </div>
+                    <div class="test-pattern-corners blue" id="test-pattern-blue">
+                        <div class="corner-marker top-left"></div>
+                        <div class="corner-marker top-right"></div>
+                        <div class="corner-marker bottom-left"></div>
+                        <div class="corner-marker bottom-right"></div>
+                        <div class="edge-marker top"></div>
+                        <div class="edge-marker bottom"></div>
+                        <div class="edge-marker left"></div>
+                        <div class="edge-marker right"></div>
+                    </div>
+                    <div class="test-pattern-corners white" id="test-pattern-white">
+                        <div class="corner-marker top-left"></div>
+                        <div class="corner-marker top-right"></div>
+                        <div class="corner-marker bottom-left"></div>
+                        <div class="corner-marker bottom-right"></div>
+                        <div class="edge-marker top"></div>
+                        <div class="edge-marker bottom"></div>
+                        <div class="edge-marker left"></div>
+                        <div class="edge-marker right"></div>
+                    </div>
+                    <!-- RGB Layers -->
+                    <div class="rgb-layer red" id="layer-red">
+                        <h1>PF 2026</h1>
+                        <p>Ať je Váš obraz jasný a ostrý.</p>
+                        <div class="signature">XC tech s.r.o.</div>
+                    </div>
+                    <div class="rgb-layer green" id="layer-green">
+                        <h1>PF 2026</h1>
+                        <p>Ať je Váš obraz jasný a ostrý.</p>
+                        <div class="signature">XC tech s.r.o.</div>
+                    </div>
+                    <div class="rgb-layer blue" id="layer-blue">
+                        <h1>PF 2026</h1>
+                        <p>Ať je Váš obraz jasný a ostrý.</p>
+                        <div class="signature">XC tech s.r.o.</div>
+                    </div>
+                    <!-- White layer (visible when converged) -->
+                    <div class="white-layer" id="layer-white">
+                        <h1>PF 2026</h1>
+                        <p id="main-message">Ať je Váš obraz jasný a ostrý.</p>
+                        <div class="signature">XC tech s.r.o.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-container" id="progress-container">
+            <span class="progress-label" data-i18n="progress">Nastaveno</span>
+            <div class="progress-bar" id="progress-bar">
+                <div class="progress-dot" data-for="focus"></div>
+                <div class="progress-dot" data-for="zoom"></div>
+                <div class="progress-dot" data-for="shift"></div>
+                <div class="progress-dot rgb-dot" data-for="convergence"></div>
+                <div class="progress-dot" data-for="brightness"></div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls" id="controls">
+            <div class="control-group" data-control="focus">
+                <span class="control-tooltip" data-i18n-tooltip="focusTip">Zaostřete obraz</span>
+                <span class="control-label" data-i18n="focus">Ostření</span>
+                <div class="slider-container" data-control="focus">
+                    <div class="slider-target"></div>
+                    <div class="slider-track"></div>
+                    <div class="slider-thumb"></div>
+                </div>
+                <div class="slider-value">0%</div>
+                <div class="lock-indicator"></div>
+            </div>
+            <div class="control-group" data-control="zoom">
+                <span class="control-tooltip" data-i18n-tooltip="zoomTip">Nastavte správnou velikost</span>
+                <span class="control-label" data-i18n="zoom">Zoom</span>
+                <div class="slider-container" data-control="zoom">
+                    <div class="slider-target"></div>
+                    <div class="slider-track"></div>
+                    <div class="slider-thumb"></div>
+                </div>
+                <div class="slider-value">0%</div>
+                <div class="lock-indicator"></div>
+            </div>
+            <div class="control-group" data-control="shift">
+                <span class="control-tooltip" data-i18n-tooltip="shiftTip">Vycentrujte obraz</span>
+                <span class="control-label" data-i18n="shift">Posun</span>
+                <div class="slider-container" data-control="shift">
+                    <div class="slider-target"></div>
+                    <div class="slider-track"></div>
+                    <div class="slider-thumb"></div>
+                </div>
+                <div class="slider-value">0%</div>
+                <div class="lock-indicator"></div>
+            </div>
+            <div class="control-section convergence-section">
+                <span class="section-label" data-i18n="convergence">Konvergence</span>
+                <div class="section-controls">
+                    <div class="control-group rgb-control" data-control="convR">
+                        <span class="control-tooltip" data-i18n-tooltip="convTip">Srovnejte barevné kanály</span>
+                        <span class="control-label" data-i18n="convR" style="color: #ff6b6b;">R</span>
+                        <div class="slider-container" data-control="convR">
+                            <div class="slider-target"></div>
+                            <div class="slider-track" style="background: #8b0000;"></div>
+                            <div class="slider-thumb" style="background: #ff6b6b;"></div>
+                        </div>
+                        <div class="slider-value">0%</div>
+                        <div class="lock-indicator"></div>
+                    </div>
+                    <div class="control-group rgb-control" data-control="convG">
+                        <span class="control-tooltip" data-i18n-tooltip="convTip">Srovnejte barevné kanály</span>
+                        <span class="control-label" data-i18n="convG" style="color: #69db7c;">G</span>
+                        <div class="slider-container" data-control="convG">
+                            <div class="slider-target"></div>
+                            <div class="slider-track" style="background: #0b6b0b;"></div>
+                            <div class="slider-thumb" style="background: #69db7c;"></div>
+                        </div>
+                        <div class="slider-value">0%</div>
+                        <div class="lock-indicator"></div>
+                    </div>
+                    <div class="control-group rgb-control" data-control="convB">
+                        <span class="control-tooltip" data-i18n-tooltip="convTip">Srovnejte barevné kanály</span>
+                        <span class="control-label" data-i18n="convB" style="color: #74c0fc;">B</span>
+                        <div class="slider-container" data-control="convB">
+                            <div class="slider-target"></div>
+                            <div class="slider-track" style="background: #0b0b6b;"></div>
+                            <div class="slider-thumb" style="background: #74c0fc;"></div>
+                        </div>
+                        <div class="slider-value">0%</div>
+                        <div class="lock-indicator"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="control-group" data-control="brightness">
+                <span class="control-tooltip" data-i18n-tooltip="brightnessTip">Upravte jas obrazu</span>
+                <span class="control-label" data-i18n="brightness">Jas</span>
+                <div class="slider-container" data-control="brightness">
+                    <div class="slider-target"></div>
+                    <div class="slider-track"></div>
+                    <div class="slider-thumb"></div>
+                </div>
+                <div class="slider-value">0%</div>
+                <div class="lock-indicator"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sound Toggle -->
+    <button class="sound-toggle" id="sound-toggle" title="Zvuk">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M11 5L6 9H2v6h4l5 4V5z"/>
+            <path class="sound-waves" d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"/>
+        </svg>
+    </button>
+
+    <!-- Finale Buttons -->
+    <div class="finale-buttons" id="finale-buttons">
+        <div class="finale-time" id="finale-time"></div>
+        <button class="finale-btn primary big" id="play-video-btn" data-i18n="playVideo">Spustit projekci</button>
+    </div>
+
+    <!-- Video Overlay -->
+    <div class="video-overlay" id="video-overlay">
+        <div class="video-container">
+            <button class="video-close" id="video-close">&times;</button>
+            <video id="greeting-video" playsinline>
+                <source src="video/pf2026_cs.mp4" type="video/mp4">
+            </video>
+        </div>
+    </div>
+
+    <!-- Success Message -->
+    <div class="success-message" id="success-message"></div>
+
+    <!-- Leaderboard Overlay -->
+    <div class="leaderboard-overlay" id="leaderboard-overlay">
+        <div class="leaderboard-container">
+            <div class="leaderboard-header">
+                <div class="leaderboard-video-container" id="leaderboard-video-container">
+                    <!-- RGB Video Layers for convergence effect -->
+                    <video class="leaderboard-video-layer red" id="lb-video-red" muted loop playsinline>
+                        <source src="video/xctech_BG_background.mp4" type="video/mp4">
+                    </video>
+                    <video class="leaderboard-video-layer green" id="lb-video-green" muted loop playsinline>
+                        <source src="video/xctech_BG_background.mp4" type="video/mp4">
+                    </video>
+                    <video class="leaderboard-video-layer blue" id="lb-video-blue" muted loop playsinline>
+                        <source src="video/xctech_BG_background.mp4" type="video/mp4">
+                    </video>
+                    <!-- White layer when converged -->
+                    <video class="leaderboard-video-layer white" id="lb-video-white" muted loop playsinline>
+                        <source src="video/xctech_BG_background.mp4" type="video/mp4">
+                    </video>
+                </div>
+                <div class="leaderboard-header-content">
+                    <h1>PF 2026</h1>
+                    <p class="leaderboard-subtitle" data-i18n="leaderboardTitle">Zapiš se do historie!</p>
+                </div>
+            </div>
+
+            <!-- Score Submit Form -->
+            <div class="score-form" id="score-form">
+                <div class="your-time">
+                    <span data-i18n="yourTime">Váš čas:</span>
+                    <strong id="leaderboard-time">00:00.00</strong>
+                </div>
+                <div class="form-fields">
+                    <input type="text" id="player-name" placeholder="Jméno" maxlength="50" data-i18n-placeholder="namePlaceholder">
+                    <input type="text" id="player-cinema" placeholder="Kino" maxlength="100" data-i18n-placeholder="cinemaPlaceholder">
+                    <input type="email" id="player-email" placeholder="E-mail (nepovinné)" maxlength="100" data-i18n-placeholder="emailPlaceholder">
+                </div>
+                <button class="submit-score-btn" id="submit-score-btn" data-i18n="submitScore">Zapsat skóre</button>
+            </div>
+
+            <!-- Score Submitted Message -->
+            <div class="score-submitted" id="score-submitted" style="display: none;">
+                <div class="rank-display">
+                    <span data-i18n="yourRank">Tvoje pozice:</span>
+                    <strong id="player-rank">#1</strong>
+                </div>
+            </div>
+
+            <!-- Leaderboard Table -->
+            <div class="leaderboard-table-container">
+                <table class="leaderboard-table" id="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th data-i18n="tableTime">Čas</th>
+                            <th data-i18n="tableName">Jméno</th>
+                            <th data-i18n="tableCinema">Kino</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body">
+                        <!-- Filled by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <button class="close-leaderboard-btn" id="close-leaderboard-btn" data-i18n="playAgain">Hrát znovu</button>
+        </div>
+    </div>
+
+    <script>
+        // =====================
+        // Configuration
+        // =====================
+        const CONFIG = {
+            targetValues: {
+                focus: 62,
+                zoom: 45,
+                shift: 53,
+                convR: 38,
+                convG: 56,
+                convB: 67,
+                brightness: 58
+            },
+            tolerance: 12,
+            lockTolerance: 5
+        };
+
+        // =====================
+        // Translations
+        // =====================
+        const i18n = {
+            cs: {
+                instructions: '<strong>Projekce má za chvilku začít!</strong><br>Pohybujte posuvníky, dokud nebude obraz perfektní.<br>Čím blíž jste, tím více posuvník svítí. Zkuste to zvládnout <strong>co nejrychleji</strong>!',
+                start: 'Začít',
+                time: 'Čas',
+                yourTime: 'Váš čas:',
+                progress: 'Nastaveno',
+                focus: 'Ostření',
+                zoom: 'Zoom',
+                shift: 'Posun',
+                convergence: 'Konvergence',
+                convR: 'R',
+                convG: 'G',
+                convB: 'B',
+                brightness: 'Jas',
+                message: 'Ať je jasný a ostrý.',
+                playVideo: 'Spustit projekci',
+                visit: 'Navštívit web',
+                success: 'Dokonalé!',
+                focusTip: 'Zaostřete obraz',
+                zoomTip: 'Nastavte správnou velikost',
+                shiftTip: 'Vycentrujte obraz',
+                convTip: 'Srovnejte barevné kanály',
+                brightnessTip: 'Upravte jas obrazu',
+                instructionsShort: 'Nastavte obraz posuvníky',
+                leaderboardTitle: 'Zapiš se do historie!',
+                namePlaceholder: 'Jméno',
+                cinemaPlaceholder: 'Kino',
+                emailPlaceholder: 'E-mail (nepovinné)',
+                submitScore: 'Zapsat skóre',
+                yourRank: 'Tvoje pozice:',
+                tableTime: 'Čas',
+                tableName: 'Jméno',
+                tableCinema: 'Kino',
+                playAgain: 'Hrát znovu'
+            },
+            en: {
+                instructions: '<strong>The projection is about to start!</strong><br>Move the sliders until the image is perfect.<br>The closer you get, the brighter the slider glows. Try to do it <strong>as fast as you can</strong>!',
+                start: 'Start',
+                time: 'Time',
+                yourTime: 'Your time:',
+                progress: 'Tuned',
+                focus: 'Focus',
+                zoom: 'Zoom',
+                shift: 'Shift',
+                convergence: 'Convergence',
+                convR: 'R',
+                convG: 'G',
+                convB: 'B',
+                brightness: 'Brightness',
+                message: 'May it be clear and sharp.',
+                playVideo: 'Start projection',
+                visit: 'Visit website',
+                success: 'Perfect!',
+                focusTip: 'Sharpen the image',
+                zoomTip: 'Set the right size',
+                shiftTip: 'Center the image',
+                convTip: 'Align color channels',
+                brightnessTip: 'Adjust image brightness',
+                instructionsShort: 'Adjust image with sliders',
+                leaderboardTitle: 'Enter the hall of fame!',
+                namePlaceholder: 'Name',
+                cinemaPlaceholder: 'Cinema',
+                emailPlaceholder: 'E-mail (optional)',
+                submitScore: 'Submit score',
+                yourRank: 'Your rank:',
+                tableTime: 'Time',
+                tableName: 'Name',
+                tableCinema: 'Cinema',
+                playAgain: 'Play again'
+            }
+        };
+
+        let currentLang = 'cs';
+
+        // =====================
+        // State
+        // =====================
+        const state = {
+            values: {
+                focus: 20,
+                zoom: 75,
+                shift: 30,
+                convR: 15,
+                convG: 70,
+                convB: 85,
+                brightness: 25
+            },
+            locked: {
+                focus: false,
+                zoom: false,
+                shift: false,
+                convR: false,
+                convG: false,
+                convB: false,
+                brightness: false
+            },
+            isFinale: false,
+            audioContext: null,
+            audioStarted: false,
+            timerStarted: false,
+            timerStart: null,
+            timerInterval: null,
+            finalTime: null
+        };
+
+        // =====================
+        // DOM Elements
+        // =====================
+        const elements = {
+            intro: document.getElementById('intro'),
+            introText: document.getElementById('intro-text'),
+            startBtn: document.getElementById('start-btn'),
+            cinema: document.getElementById('cinema'),
+            screen: document.getElementById('screen'),
+            screenContent: document.getElementById('screen-content'),
+            mainMessage: document.getElementById('main-message'),
+            controls: document.getElementById('controls'),
+            gameInstructions: document.getElementById('game-instructions'),
+            instructionsText: document.getElementById('instructions-text'),
+            instructionsShort: document.getElementById('instructions-short'),
+            timerContainer: document.getElementById('timer-container'),
+            timerDisplay: document.getElementById('timer-display'),
+            finaleTime: document.getElementById('finale-time'),
+            progressContainer: document.getElementById('progress-container'),
+            progressBar: document.getElementById('progress-bar'),
+            dustCanvas: document.getElementById('dust-canvas'),
+            confettiCanvas: document.getElementById('confetti-canvas'),
+            ambientLights: document.getElementById('ambient-lights'),
+            soundToggle: document.getElementById('sound-toggle'),
+            finaleButtons: document.getElementById('finale-buttons'),
+            successMessage: document.getElementById('success-message'),
+            gameLogo: document.getElementById('game-logo'),
+            langBtns: document.querySelectorAll('.lang-btn'),
+            layerRed: document.getElementById('layer-red'),
+            layerGreen: document.getElementById('layer-green'),
+            layerBlue: document.getElementById('layer-blue'),
+            layerWhite: document.getElementById('layer-white'),
+            // Background video layers
+            bgVideoContainer: document.getElementById('bg-video-container'),
+            bgVideoRed: document.getElementById('bg-video-red'),
+            bgVideoGreen: document.getElementById('bg-video-green'),
+            bgVideoBlue: document.getElementById('bg-video-blue'),
+            bgVideoWhite: document.getElementById('bg-video-white'),
+            testPatternRed: document.getElementById('test-pattern-red'),
+            testPatternGreen: document.getElementById('test-pattern-green'),
+            testPatternBlue: document.getElementById('test-pattern-blue'),
+            testPatternWhite: document.getElementById('test-pattern-white'),
+            playVideoBtn: document.getElementById('play-video-btn'),
+            videoOverlay: document.getElementById('video-overlay'),
+            videoClose: document.getElementById('video-close'),
+            greetingVideo: document.getElementById('greeting-video'),
+            leaderboardOverlay: document.getElementById('leaderboard-overlay'),
+            scoreForm: document.getElementById('score-form'),
+            scoreSubmitted: document.getElementById('score-submitted'),
+            leaderboardTime: document.getElementById('leaderboard-time'),
+            playerName: document.getElementById('player-name'),
+            playerCinema: document.getElementById('player-cinema'),
+            playerEmail: document.getElementById('player-email'),
+            submitScoreBtn: document.getElementById('submit-score-btn'),
+            playerRank: document.getElementById('player-rank'),
+            leaderboardBody: document.getElementById('leaderboard-body'),
+            closeLeaderboardBtn: document.getElementById('close-leaderboard-btn'),
+            // Leaderboard video layers
+            lbVideoRed: document.getElementById('lb-video-red'),
+            lbVideoGreen: document.getElementById('lb-video-green'),
+            lbVideoBlue: document.getElementById('lb-video-blue'),
+            lbVideoWhite: document.getElementById('lb-video-white')
+        };
+
+        // =====================
+        // Language Switching
+        // =====================
+        function setLanguage(lang) {
+            currentLang = lang;
+            document.documentElement.lang = lang;
+
+            elements.instructionsText.innerHTML = i18n[lang].instructions;
+            elements.instructionsShort.textContent = i18n[lang].instructionsShort;
+
+            // Update all message texts
+            document.querySelectorAll('#main-message, .rgb-layer p').forEach(el => {
+                el.textContent = i18n[lang].message;
+            });
+
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.dataset.i18n;
+                if (i18n[lang][key]) {
+                    el.textContent = i18n[lang][key];
+                }
+            });
+
+            // Update tooltips
+            document.querySelectorAll('[data-i18n-tooltip]').forEach(el => {
+                const key = el.dataset.i18nTooltip;
+                if (i18n[lang][key]) {
+                    el.textContent = i18n[lang][key];
+                }
+            });
+
+            // Update placeholders
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.dataset.i18nPlaceholder;
+                if (i18n[lang][key]) {
+                    el.placeholder = i18n[lang][key];
+                }
+            });
+
+            elements.langBtns.forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.lang === lang);
+            });
+        }
+
+        elements.langBtns.forEach(btn => {
+            btn.addEventListener('click', () => setLanguage(btn.dataset.lang));
+        });
+
+        // =====================
+        // Ambient Lights
+        // =====================
+        function createAmbientLights() {
+            const container = elements.ambientLights;
+            const lights = [
+                { x: 5, y: 30 }, { x: 5, y: 50 }, { x: 5, y: 70 },
+                { x: 95, y: 30 }, { x: 95, y: 50 }, { x: 95, y: 70 }
+            ];
+
+            lights.forEach((pos, i) => {
+                const light = document.createElement('div');
+                light.className = 'ambient-light';
+                light.style.left = `${pos.x}%`;
+                light.style.top = `${pos.y}%`;
+                light.style.animationDelay = `${i * 0.5}s`;
+                container.appendChild(light);
+            });
+        }
+
+        // =====================
+        // Dust Particles
+        // =====================
+        class DustParticles {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.particles = [];
+                this.resize();
+                this.init();
+
+                window.addEventListener('resize', () => this.resize());
+            }
+
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+
+            init() {
+                const coneWidth = window.innerWidth * 0.4;
+                const coneLeft = (window.innerWidth - coneWidth) / 2;
+
+                for (let i = 0; i < 80; i++) {
+                    this.particles.push({
+                        x: coneLeft + Math.random() * coneWidth,
+                        y: Math.random() * this.canvas.height * 0.7,
+                        size: Math.random() * 2 + 0.5,
+                        speedX: (Math.random() - 0.5) * 0.3,
+                        speedY: Math.random() * 0.5 + 0.2,
+                        opacity: Math.random() * 0.5 + 0.2
+                    });
+                }
+
+                this.animate();
+            }
+
+            animate() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                const coneWidth = window.innerWidth * 0.5;
+                const coneLeft = (window.innerWidth - coneWidth) / 2;
+
+                this.particles.forEach(p => {
+                    p.x += p.speedX;
+                    p.y += p.speedY;
+
+                    if (p.y > this.canvas.height * 0.7) {
+                        p.y = 0;
+                        p.x = coneLeft + Math.random() * coneWidth;
+                    }
+
+                    if (p.x < coneLeft || p.x > coneLeft + coneWidth) {
+                        p.x = coneLeft + Math.random() * coneWidth;
+                    }
+
+                    const fadeY = p.y / (this.canvas.height * 0.7);
+                    const opacity = p.opacity * (1 - fadeY * 0.7);
+
+                    this.ctx.beginPath();
+                    this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    this.ctx.fillStyle = `rgba(255, 250, 240, ${opacity})`;
+                    this.ctx.fill();
+                });
+
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+
+        // =====================
+        // Confetti
+        // =====================
+        class Confetti {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.particles = [];
+                this.isActive = false;
+                this.resize();
+                window.addEventListener('resize', () => this.resize());
+            }
+
+            resize() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            }
+
+            burst() {
+                this.isActive = true;
+                this.canvas.classList.add('active');
+                this.particles = [];
+
+                const colors = ['#d4a853', '#ffffff', '#4ade80', '#fbbf24', '#f472b6'];
+
+                for (let i = 0; i < 100; i++) {
+                    this.particles.push({
+                        x: this.canvas.width / 2,
+                        y: this.canvas.height / 2,
+                        vx: (Math.random() - 0.5) * 20,
+                        vy: (Math.random() - 0.5) * 20 - 5,
+                        size: Math.random() * 8 + 4,
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        rotation: Math.random() * 360,
+                        rotationSpeed: (Math.random() - 0.5) * 10,
+                        life: 1
+                    });
+                }
+
+                this.animate();
+            }
+
+            animate() {
+                if (!this.isActive) return;
+
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+                let aliveCount = 0;
+
+                this.particles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.3; // gravity
+                    p.rotation += p.rotationSpeed;
+                    p.life -= 0.008;
+
+                    if (p.life > 0) {
+                        aliveCount++;
+                        this.ctx.save();
+                        this.ctx.translate(p.x, p.y);
+                        this.ctx.rotate(p.rotation * Math.PI / 180);
+                        this.ctx.globalAlpha = p.life;
+                        this.ctx.fillStyle = p.color;
+                        this.ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size / 2);
+                        this.ctx.restore();
+                    }
+                });
+
+                if (aliveCount > 0) {
+                    requestAnimationFrame(() => this.animate());
+                } else {
+                    this.isActive = false;
+                    this.canvas.classList.remove('active');
+                }
+            }
+        }
+
+        // =====================
+        // Sliders
+        // =====================
+        function initSliders() {
+            document.querySelectorAll('.slider-container').forEach(container => {
+                const control = container.dataset.control;
+                const thumb = container.querySelector('.slider-thumb');
+                const track = container.querySelector('.slider-track');
+                const target = container.querySelector('.slider-target');
+                const group = container.closest('.control-group');
+                const valueDisplay = group.querySelector('.slider-value');
+
+                let isDragging = false;
+
+                // Set target zone position
+                if (target) {
+                    target.style.left = `${CONFIG.targetValues[control]}%`;
+                }
+
+                function updateSlider(value) {
+                    state.values[control] = Math.max(0, Math.min(100, value));
+                    const percent = state.values[control];
+                    thumb.style.left = `${percent}%`;
+                    track.style.width = `${percent}%`;
+
+                    // Update value display
+                    if (valueDisplay) {
+                        valueDisplay.textContent = `${Math.round(percent)}%`;
+                    }
+
+                    // Check proximity to target (for hot/cold feedback)
+                    const distance = Math.abs(state.values[control] - CONFIG.targetValues[control]);
+                    const isHot = distance <= CONFIG.tolerance && distance > CONFIG.lockTolerance;
+                    const isLocked = distance <= CONFIG.lockTolerance;
+                    const wasLocked = state.locked[control];
+                    state.locked[control] = isLocked;
+
+                    // Update visual state
+                    group.classList.toggle('hot', isHot && !isLocked);
+                    group.classList.toggle('locked', isLocked);
+
+                    // Play lock sound if just locked
+                    if (isLocked && !wasLocked) {
+                        audio.playLock();
+                    }
+
+                    applyEffects();
+                    checkFinale();
+                    updateProgress();
+                }
+
+                function handleMove(clientX) {
+                    // Start timer on first interaction
+                    startTimer();
+
+                    const rect = container.getBoundingClientRect();
+                    const percent = ((clientX - rect.left) / rect.width) * 100;
+                    updateSlider(percent);
+                }
+
+                container.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    isDragging = true;
+                    thumb.classList.add('dragging');
+                    document.body.classList.add('dragging');
+                    handleMove(e.clientX);
+                });
+
+                container.addEventListener('touchstart', (e) => {
+                    isDragging = true;
+                    thumb.classList.add('dragging');
+                    document.body.classList.add('dragging');
+                    handleMove(e.touches[0].clientX);
+                }, { passive: true });
+
+                document.addEventListener('mousemove', (e) => {
+                    if (isDragging) {
+                        e.preventDefault();
+                        handleMove(e.clientX);
+                    }
+                });
+
+                document.addEventListener('touchmove', (e) => {
+                    if (isDragging) handleMove(e.touches[0].clientX);
+                }, { passive: true });
+
+                document.addEventListener('mouseup', () => {
+                    isDragging = false;
+                    thumb.classList.remove('dragging');
+                    document.body.classList.remove('dragging');
+                });
+                document.addEventListener('touchend', () => {
+                    isDragging = false;
+                    thumb.classList.remove('dragging');
+                    document.body.classList.remove('dragging');
+                });
+
+                // Prevent text selection during drag
+                document.addEventListener('selectstart', (e) => {
+                    if (isDragging) e.preventDefault();
+                });
+
+                // Initialize
+                updateSlider(state.values[control]);
+            });
+        }
+
+        // =====================
+        // Progress Bar
+        // =====================
+        function updateProgress() {
+            const dots = elements.progressBar.querySelectorAll('.progress-dot');
+
+            // Focus dot
+            dots[0].classList.toggle('active', state.locked.focus);
+            // Zoom dot
+            dots[1].classList.toggle('active', state.locked.zoom);
+            // Shift dot
+            dots[2].classList.toggle('active', state.locked.shift);
+            // Convergence dot (all RGB must be locked)
+            const rgbLocked = state.locked.convR && state.locked.convG && state.locked.convB;
+            dots[3].classList.toggle('active', rgbLocked);
+            // Brightness dot
+            dots[4].classList.toggle('active', state.locked.brightness);
+        }
+
+        // =====================
+        // Visual Effects
+        // =====================
+        function applyEffects() {
+            const { focus, zoom, shift, convR, convG, convB, brightness } = state.values;
+            const targets = CONFIG.targetValues;
+
+            // Focus: blur based on distance from target (0 blur when at target)
+            const blurAmount = Math.abs(focus - targets.focus) / 5;
+
+            // Zoom: scale (1.0 = perfect at target value)
+            const zoomDiff = zoom - targets.zoom;
+            const scale = 1 + (zoomDiff / 100) * 0.6;
+
+            // Shift: translate (0 shift at target)
+            const shiftX = (shift - targets.shift) * 2;
+
+            // Brightness (1.0 = perfect at target)
+            const bright = 0.5 + (brightness / 100);
+
+            // RGB convergence offsets (0 offset at target values)
+            const rOffsetX = (convR - targets.convR) * 0.4;
+            const rOffsetY = (convR - targets.convR) * 0.2;
+            const gOffsetX = (convG - targets.convG) * 0.1;
+            const gOffsetY = (convG - targets.convG) * -0.3;
+            const bOffsetX = (convB - targets.convB) * -0.4;
+            const bOffsetY = (convB - targets.convB) * 0.15;
+
+            // Base transform for all layers
+            const baseTransform = `scale(${scale}) translateX(${shiftX}px)`;
+            const baseFilter = `blur(${blurAmount}px) brightness(${bright})`;
+
+            // Apply to RGB layers - each has its own offset
+            elements.layerRed.style.transform = `${baseTransform} translate(${rOffsetX}px, ${rOffsetY}px)`;
+            elements.layerGreen.style.transform = `${baseTransform} translate(${gOffsetX}px, ${gOffsetY}px)`;
+            elements.layerBlue.style.transform = `${baseTransform} translate(${bOffsetX}px, ${bOffsetY}px)`;
+
+            elements.layerRed.style.filter = baseFilter;
+            elements.layerGreen.style.filter = baseFilter;
+            elements.layerBlue.style.filter = baseFilter;
+
+            // Apply to test pattern RGB layers
+            elements.testPatternRed.style.transform = `${baseTransform} translate(${rOffsetX}px, ${rOffsetY}px)`;
+            elements.testPatternGreen.style.transform = `${baseTransform} translate(${gOffsetX}px, ${gOffsetY}px)`;
+            elements.testPatternBlue.style.transform = `${baseTransform} translate(${bOffsetX}px, ${bOffsetY}px)`;
+            elements.testPatternRed.style.filter = baseFilter;
+            elements.testPatternGreen.style.filter = baseFilter;
+            elements.testPatternBlue.style.filter = baseFilter;
+
+            // Apply to background video layers (need translate(-50%, -50%) for centering)
+            // Video is dimmed to 35% brightness for better text readability
+            const videoBright = bright * 0.35;
+            const videoBaseTransform = `translate(-50%, -50%) scale(${scale}) translateX(${shiftX}px)`;
+            const redVideoFilter = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='r'%3E%3CfeColorMatrix values='1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0'/%3E%3C/filter%3E%3C/svg%3E#r") blur(${blurAmount}px) brightness(${videoBright})`;
+            const greenVideoFilter = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeColorMatrix values='0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0'/%3E%3C/filter%3E%3C/svg%3E#g") blur(${blurAmount}px) brightness(${videoBright})`;
+            const blueVideoFilter = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='b'%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0'/%3E%3C/filter%3E%3C/svg%3E#b") blur(${blurAmount}px) brightness(${videoBright})`;
+
+            elements.bgVideoRed.style.transform = `${videoBaseTransform} translate(${rOffsetX}px, ${rOffsetY}px)`;
+            elements.bgVideoGreen.style.transform = `${videoBaseTransform} translate(${gOffsetX}px, ${gOffsetY}px)`;
+            elements.bgVideoBlue.style.transform = `${videoBaseTransform} translate(${bOffsetX}px, ${bOffsetY}px)`;
+
+            elements.bgVideoRed.style.filter = redVideoFilter;
+            elements.bgVideoGreen.style.filter = greenVideoFilter;
+            elements.bgVideoBlue.style.filter = blueVideoFilter;
+
+            // Check if ALL values are close to perfect
+            const allClose = Object.keys(CONFIG.targetValues).every(key =>
+                Math.abs(state.values[key] - CONFIG.targetValues[key]) <= CONFIG.lockTolerance
+            );
+
+            // White layer: visible only when everything is correct
+            // Also hide RGB layers when white is visible
+            if (allClose) {
+                elements.layerWhite.style.opacity = '1';
+                elements.layerWhite.style.transform = 'scale(1) translateX(0)';
+                elements.layerWhite.style.filter = 'blur(0) brightness(1)';
+                elements.layerRed.style.opacity = '0';
+                elements.layerGreen.style.opacity = '0';
+                elements.layerBlue.style.opacity = '0';
+                // Test pattern - show white, hide RGB
+                elements.testPatternWhite.style.opacity = '1';
+                elements.testPatternWhite.style.transform = 'scale(1) translateX(0)';
+                elements.testPatternWhite.style.filter = 'blur(0) brightness(1)';
+                elements.testPatternRed.style.opacity = '0';
+                elements.testPatternGreen.style.opacity = '0';
+                elements.testPatternBlue.style.opacity = '0';
+                // Video layers - show white, hide RGB
+                elements.bgVideoWhite.style.opacity = '1';
+                elements.bgVideoWhite.style.transform = 'translate(-50%, -50%) scale(1) translateX(0)';
+                elements.bgVideoWhite.style.filter = 'blur(0) brightness(0.6)';
+                elements.bgVideoRed.style.opacity = '0';
+                elements.bgVideoGreen.style.opacity = '0';
+                elements.bgVideoBlue.style.opacity = '0';
+            } else {
+                elements.layerWhite.style.opacity = '0';
+                elements.layerWhite.style.transform = baseTransform;
+                elements.layerWhite.style.filter = baseFilter;
+                elements.layerRed.style.opacity = '1';
+                elements.layerGreen.style.opacity = '1';
+                elements.layerBlue.style.opacity = '1';
+                // Test pattern - show RGB, hide white
+                elements.testPatternWhite.style.opacity = '0';
+                elements.testPatternWhite.style.transform = baseTransform;
+                elements.testPatternWhite.style.filter = baseFilter;
+                elements.testPatternRed.style.opacity = '1';
+                elements.testPatternGreen.style.opacity = '1';
+                elements.testPatternBlue.style.opacity = '1';
+                // Video layers - show RGB, hide white
+                elements.bgVideoWhite.style.opacity = '0';
+                elements.bgVideoWhite.style.transform = videoBaseTransform;
+                elements.bgVideoWhite.style.filter = baseFilter;
+                elements.bgVideoRed.style.opacity = '1';
+                elements.bgVideoGreen.style.opacity = '1';
+                elements.bgVideoBlue.style.opacity = '1';
+            }
+        }
+
+        // =====================
+        // Finale Detection
+        // =====================
+        function checkFinale() {
+            const allLocked = Object.values(state.locked).every(v => v);
+
+            if (allLocked && !state.isFinale) {
+                triggerFinale();
+            } else if (!allLocked && state.isFinale) {
+                exitFinale();
+            }
+        }
+
+        function triggerFinale() {
+            state.isFinale = true;
+            elements.cinema.classList.add('finale');
+            elements.finaleButtons.classList.add('visible');
+
+            // Stop timer and show final time
+            stopTimer();
+
+            // Hide controls, instructions, timer and progress bar
+            elements.controls.classList.add('finale-hidden');
+            elements.gameInstructions.classList.add('finale-hidden');
+            elements.timerContainer.classList.add('finale-hidden');
+            elements.progressContainer.classList.add('finale-hidden');
+
+            // Show success message briefly
+            elements.successMessage.textContent = i18n[currentLang].success;
+            elements.successMessage.classList.add('visible');
+            setTimeout(() => {
+                elements.successMessage.classList.remove('visible');
+            }, 2500);
+
+            // Snap to perfect values
+            Object.keys(CONFIG.targetValues).forEach(key => {
+                state.values[key] = CONFIG.targetValues[key];
+            });
+
+            // Show and start background video
+            elements.bgVideoContainer.classList.add('visible');
+            startBgVideos();
+
+            // Update sliders visually
+            document.querySelectorAll('.slider-container').forEach(container => {
+                const control = container.dataset.control;
+                const thumb = container.querySelector('.slider-thumb');
+                const track = container.querySelector('.slider-track');
+                const percent = CONFIG.targetValues[control];
+                thumb.style.left = `${percent}%`;
+                track.style.width = `${percent}%`;
+            });
+
+            applyEffects();
+
+            // Confetti burst
+            confetti.burst();
+
+            // Success sound
+            audio.playSuccess();
+        }
+
+        function exitFinale() {
+            state.isFinale = false;
+            elements.cinema.classList.remove('finale');
+            elements.finaleButtons.classList.remove('visible');
+
+            // Show controls, instructions and progress bar again
+            elements.controls.classList.remove('finale-hidden');
+            elements.gameInstructions.classList.remove('finale-hidden');
+            elements.progressContainer.classList.remove('finale-hidden');
+        }
+
+        // =====================
+        // Audio
+        // =====================
+        class ProjectorAudio {
+            constructor() {
+                this.audio = new Audio('music/ambient.mp3');
+                this.audio.loop = true;
+                this.audio.volume = 0.5;
+                this.isPlaying = false;
+                this.ctx = null;
+            }
+
+            async init() {
+                this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            playLock() {
+                if (!this.ctx) return;
+
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1200, this.ctx.currentTime + 0.1);
+
+                gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.15);
+            }
+
+            playSuccess() {
+                if (!this.ctx) return;
+
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+
+                notes.forEach((freq, i) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+
+                    const startTime = this.ctx.currentTime + i * 0.1;
+                    gain.gain.setValueAtTime(0, startTime);
+                    gain.gain.linearRampToValueAtTime(0.15, startTime + 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.4);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    osc.start(startTime);
+                    osc.stop(startTime + 0.5);
+                });
+            }
+
+            async start() {
+                if (this.isPlaying) return;
+
+                if (!this.ctx) {
+                    await this.init();
+                }
+
+                if (this.ctx.state === 'suspended') {
+                    await this.ctx.resume();
+                }
+
+                this.audio.play().catch(e => console.log('Audio autoplay blocked:', e));
+                this.isPlaying = true;
+            }
+
+            stop() {
+                if (!this.isPlaying) return;
+
+                this.audio.pause();
+                this.isPlaying = false;
+            }
+
+            toggle() {
+                if (this.isPlaying) {
+                    this.stop();
+                    return false;
+                } else {
+                    this.start();
+                    return true;
+                }
+            }
+        }
+
+        const audio = new ProjectorAudio();
+        let confetti;
+
+        // =====================
+        // Timer Functions
+        // =====================
+        function formatTime(ms) {
+            const totalSeconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            const centiseconds = Math.floor((ms % 1000) / 10);
+            return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${centiseconds.toString().padStart(2, '0')}`;
+        }
+
+        function startTimer() {
+            if (state.timerStarted) return;
+            state.timerStarted = true;
+            state.timerStart = Date.now();
+            elements.timerDisplay.classList.add('running');
+            state.timerInterval = setInterval(() => {
+                const elapsed = Date.now() - state.timerStart;
+                elements.timerDisplay.textContent = formatTime(elapsed);
+            }, 10);
+            // Minimize instructions when user starts interacting
+            elements.gameInstructions.classList.add('minimized');
+        }
+
+        function stopTimer() {
+            if (state.timerInterval) {
+                clearInterval(state.timerInterval);
+                state.finalTime = Date.now() - state.timerStart;
+                elements.timerDisplay.classList.remove('running');
+                elements.finaleTime.innerHTML = `${i18n[currentLang].yourTime} <span>${formatTime(state.finalTime)}</span>`;
+            }
+        }
+
+        // =====================
+        // Background Video Control
+        // =====================
+        function startBgVideos() {
+            const videos = [
+                elements.bgVideoRed,
+                elements.bgVideoGreen,
+                elements.bgVideoBlue,
+                elements.bgVideoWhite
+            ];
+
+            // Start all videos
+            videos.forEach(video => {
+                video.currentTime = 0;
+                video.play().catch(e => console.log('Video autoplay blocked:', e));
+            });
+
+            // Sync videos periodically
+            setInterval(() => {
+                const masterTime = elements.bgVideoRed.currentTime;
+                [elements.bgVideoGreen, elements.bgVideoBlue, elements.bgVideoWhite].forEach(v => {
+                    if (Math.abs(v.currentTime - masterTime) > 0.1) {
+                        v.currentTime = masterTime;
+                    }
+                });
+            }, 1000);
+        }
+
+        // =====================
+        // Start Experience
+        // =====================
+        function startExperience() {
+            elements.intro.classList.add('hidden');
+            elements.controls.classList.add('visible');
+            elements.gameInstructions.classList.add('visible');
+            elements.timerContainer.classList.add('visible');
+            elements.progressContainer.classList.add('visible');
+            elements.soundToggle.classList.add('visible');
+            elements.gameLogo.classList.add('visible');
+
+            audio.start();
+            elements.soundToggle.classList.add('active');
+
+            // Timer starts on first slider interaction
+
+            // Auto-minimize instructions after 5 seconds if user hasn't started
+            setTimeout(() => {
+                if (!state.timerStarted) {
+                    elements.gameInstructions.classList.add('minimized');
+                }
+            }, 5000);
+        }
+
+        elements.startBtn.addEventListener('click', startExperience);
+
+        elements.soundToggle.addEventListener('click', () => {
+            const isOn = audio.toggle();
+            elements.soundToggle.classList.toggle('active', isOn);
+        });
+
+        // =====================
+        // Video Player
+        // =====================
+        const videoSources = {
+            cs: 'video/pf2026_cs.mp4',
+            en: 'video/pf2026_en.mp4'
+        };
+
+        function openVideo() {
+            // Set video source based on current language
+            elements.greetingVideo.src = videoSources[currentLang];
+            elements.videoOverlay.classList.add('visible');
+            elements.greetingVideo.play();
+
+            // Pause projector audio
+            if (audio.isPlaying) {
+                audio.stop();
+                elements.soundToggle.classList.remove('active');
+            }
+        }
+
+        function closeVideo() {
+            elements.greetingVideo.pause();
+            elements.greetingVideo.currentTime = 0;
+            elements.videoOverlay.classList.remove('visible');
+        }
+
+        elements.playVideoBtn.addEventListener('click', openVideo);
+        elements.videoClose.addEventListener('click', closeVideo);
+
+        // Close on overlay click (outside video)
+        elements.videoOverlay.addEventListener('click', (e) => {
+            if (e.target === elements.videoOverlay) {
+                closeVideo();
+            }
+        });
+
+        // Close on video end - show leaderboard
+        elements.greetingVideo.addEventListener('ended', () => {
+            closeVideo();
+            showLeaderboard();
+        });
+
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && elements.videoOverlay.classList.contains('visible')) {
+                closeVideo();
+            }
+            if (e.key === 'Escape' && elements.leaderboardOverlay.classList.contains('visible')) {
+                hideLeaderboard();
+            }
+        });
+
+        // =====================
+        // Leaderboard
+        // =====================
+        let currentPlayerScoreId = null;
+        let lbVideoAnimationId = null;
+
+        function startLeaderboardVideos() {
+            const videos = [
+                elements.lbVideoRed,
+                elements.lbVideoGreen,
+                elements.lbVideoBlue,
+                elements.lbVideoWhite
+            ];
+
+            // Start all videos
+            videos.forEach(video => {
+                video.currentTime = 0;
+                video.play().catch(e => console.log('Video autoplay blocked:', e));
+            });
+
+            // Sync videos periodically
+            const syncVideos = () => {
+                const masterTime = elements.lbVideoRed.currentTime;
+                [elements.lbVideoGreen, elements.lbVideoBlue, elements.lbVideoWhite].forEach(v => {
+                    if (Math.abs(v.currentTime - masterTime) > 0.1) {
+                        v.currentTime = masterTime;
+                    }
+                });
+            };
+            setInterval(syncVideos, 1000);
+
+            // Animate imperfect RGB effect
+            let phase = 0;
+            function animateLeaderboardVideo() {
+                phase += 0.02;
+
+                // Create subtle animated RGB misalignment for visual interest
+                const rOffsetX = Math.sin(phase) * 3;
+                const rOffsetY = Math.cos(phase * 0.7) * 2;
+                const gOffsetX = Math.sin(phase * 1.3 + 2) * 2;
+                const gOffsetY = Math.cos(phase * 0.9 + 1) * 3;
+                const bOffsetX = Math.sin(phase * 0.8 + 4) * 4;
+                const bOffsetY = Math.cos(phase * 1.1 + 3) * 2;
+
+                // Subtle blur oscillation
+                const blur = 1 + Math.sin(phase * 0.5) * 0.5;
+
+                // Apply transforms
+                elements.lbVideoRed.style.transform = `translate(-50%, -50%) translate(${rOffsetX}px, ${rOffsetY}px)`;
+                elements.lbVideoGreen.style.transform = `translate(-50%, -50%) translate(${gOffsetX}px, ${gOffsetY}px)`;
+                elements.lbVideoBlue.style.transform = `translate(-50%, -50%) translate(${bOffsetX}px, ${bOffsetY}px)`;
+                elements.lbVideoWhite.style.transform = `translate(-50%, -50%)`;
+
+                // Apply blur and darken (brightness 0.25 for better text readability)
+                const redFilter = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='r'%3E%3CfeColorMatrix values='1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0'/%3E%3C/filter%3E%3C/svg%3E#r") blur(${blur}px) brightness(0.25)`;
+                const greenFilter = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeColorMatrix values='0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0'/%3E%3C/filter%3E%3C/svg%3E#g") blur(${blur}px) brightness(0.25)`;
+                const blueFilter = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='b'%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0'/%3E%3C/filter%3E%3C/svg%3E#b") blur(${blur}px) brightness(0.25)`;
+
+                elements.lbVideoRed.style.filter = redFilter;
+                elements.lbVideoGreen.style.filter = greenFilter;
+                elements.lbVideoBlue.style.filter = blueFilter;
+
+                lbVideoAnimationId = requestAnimationFrame(animateLeaderboardVideo);
+            }
+
+            animateLeaderboardVideo();
+        }
+
+        function stopLeaderboardVideos() {
+            if (lbVideoAnimationId) {
+                cancelAnimationFrame(lbVideoAnimationId);
+                lbVideoAnimationId = null;
+            }
+            [elements.lbVideoRed, elements.lbVideoGreen, elements.lbVideoBlue, elements.lbVideoWhite].forEach(video => {
+                video.pause();
+            });
+        }
+
+        function showLeaderboard() {
+            // Reset form state
+            elements.scoreForm.style.display = 'block';
+            elements.scoreSubmitted.style.display = 'none';
+            elements.playerName.value = '';
+            elements.playerCinema.value = '';
+            elements.playerEmail.value = '';
+            elements.submitScoreBtn.disabled = false;
+            currentPlayerScoreId = null;
+
+            // Show time
+            elements.leaderboardTime.textContent = formatTime(state.finalTime);
+
+            // Load existing scores
+            loadLeaderboard();
+
+            // Start background video with effects
+            startLeaderboardVideos();
+
+            // Show overlay
+            elements.leaderboardOverlay.classList.add('visible');
+        }
+
+        function hideLeaderboard() {
+            elements.leaderboardOverlay.classList.remove('visible');
+            stopLeaderboardVideos();
+        }
+
+        async function loadLeaderboard() {
+            try {
+                const response = await fetch('/api/scores');
+                const data = await response.json();
+
+                if (data.success) {
+                    renderLeaderboard(data.scores);
+                }
+            } catch (error) {
+                console.error('Failed to load leaderboard:', error);
+            }
+        }
+
+        function renderLeaderboard(scores) {
+            elements.leaderboardBody.innerHTML = '';
+
+            scores.slice(0, 20).forEach((score, index) => {
+                const row = document.createElement('tr');
+                if (score.id === currentPlayerScoreId) {
+                    row.classList.add('highlight');
+                }
+
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${formatTime(score.time)}</td>
+                    <td>${escapeHtml(score.name)}</td>
+                    <td>${escapeHtml(score.cinema)}</td>
+                `;
+
+                elements.leaderboardBody.appendChild(row);
+            });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function submitScore() {
+            const name = elements.playerName.value.trim();
+            const cinema = elements.playerCinema.value.trim();
+            const email = elements.playerEmail.value.trim();
+
+            if (!name || !cinema) {
+                elements.playerName.style.borderColor = name ? '' : '#ff6b6b';
+                elements.playerCinema.style.borderColor = cinema ? '' : '#ff6b6b';
+                return;
+            }
+
+            elements.submitScoreBtn.disabled = true;
+
+            try {
+                const response = await fetch('/api/scores', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        cinema: cinema,
+                        email: email || null,
+                        time: state.finalTime
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    currentPlayerScoreId = data.score.id;
+
+                    // Show submitted message
+                    elements.scoreForm.style.display = 'none';
+                    elements.scoreSubmitted.style.display = 'block';
+                    elements.playerRank.textContent = `#${data.rank}`;
+
+                    // Reload leaderboard
+                    loadLeaderboard();
+                } else {
+                    alert('Chyba při ukládání skóre');
+                    elements.submitScoreBtn.disabled = false;
+                }
+            } catch (error) {
+                console.error('Failed to submit score:', error);
+                alert('Chyba při ukládání skóre');
+                elements.submitScoreBtn.disabled = false;
+            }
+        }
+
+        elements.submitScoreBtn.addEventListener('click', submitScore);
+
+        elements.closeLeaderboardBtn.addEventListener('click', () => {
+            hideLeaderboard();
+            resetGame();
+        });
+
+        function resetGame() {
+            // Reset state
+            state.timerStarted = false;
+            state.finalTime = null;
+            state.locked = {
+                focus: false,
+                zoom: false,
+                shift: false,
+                convR: false,
+                convG: false,
+                convB: false,
+                brightness: false
+            };
+
+            // Randomize values
+            Object.keys(state.values).forEach(key => {
+                state.values[key] = Math.random() * 100;
+            });
+
+            // Reset timer display
+            clearInterval(state.timerInterval);
+            elements.timerDisplay.textContent = '00:00.00';
+            elements.timerDisplay.classList.remove('running');
+
+            // Remove finale state
+            elements.cinema.classList.remove('finale');
+            elements.successMessage.classList.remove('visible');
+            elements.finaleButtons.classList.remove('visible');
+
+            // Show controls again
+            elements.controls.classList.remove('finale-hidden');
+            elements.gameInstructions.classList.remove('finale-hidden');
+            elements.gameInstructions.classList.remove('minimized');
+            elements.progressContainer.classList.remove('finale-hidden');
+            elements.timerContainer.classList.remove('finale-hidden');
+
+            // Reset sliders UI
+            document.querySelectorAll('.control-group').forEach(group => {
+                group.classList.remove('locked', 'hot');
+            });
+
+            // Reinitialize
+            initSliders();
+            applyEffects();
+            updateProgress();
+        }
+
+        // =====================
+        // Initialize
+        // =====================
+        function init() {
+            createAmbientLights();
+            new DustParticles(elements.dustCanvas);
+            confetti = new Confetti(elements.confettiCanvas);
+            initSliders();
+            applyEffects();
+        }
+
+        init();
+    </script>
+</body>
+</html>
