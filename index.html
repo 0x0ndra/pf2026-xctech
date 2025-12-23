@@ -523,7 +523,8 @@
             animation: fadeSlideIn 1s cubic-bezier(0.4, 0, 0.2, 1) 0.2s both;
         }
 
-        .intro-logo img {
+        .intro-logo img,
+        .intro-logo video {
             width: 100%;
             height: auto;
             filter: drop-shadow(0 0 30px rgba(255,255,255,0.1));
@@ -2126,7 +2127,9 @@
     <!-- Intro Screen -->
     <div class="intro" id="intro">
         <div class="intro-logo">
-            <img src="logo_white.png" alt="XC tech">
+            <video autoplay muted loop playsinline>
+                <source src="video/xctech_logo_lights.mp4" type="video/mp4">
+            </video>
         </div>
         <div class="intro-pf">PF 2026</div>
         <button class="start-btn" id="start-btn">
