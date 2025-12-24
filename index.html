@@ -1370,16 +1370,59 @@
             transform: translateX(-50%) translateY(0);
         }
 
-        .finale-time {
-            font-size: 14px;
+        .finale-congrats {
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .congrats-title {
+            font-family: 'Raleway', sans-serif;
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
             font-weight: 300;
-            color: rgba(255,255,255,0.6);
+            color: var(--gold);
+            letter-spacing: 0.15em;
+            margin-bottom: 5px;
+        }
+
+        .congrats-subtitle {
+            font-size: clamp(0.9rem, 2vw, 1.1rem);
+            color: rgba(255,255,255,0.9);
+            font-weight: 300;
+            margin-bottom: 10px;
+        }
+
+        .congrats-promo {
+            font-size: clamp(0.75rem, 1.5vw, 0.9rem);
+            color: rgba(255,255,255,0.5);
+            font-style: italic;
+        }
+
+        .finale-time {
+            font-size: 16px;
+            font-weight: 300;
+            color: rgba(255,255,255,0.8);
             letter-spacing: 0.1em;
         }
 
         .finale-time span {
             color: var(--gold);
-            font-weight: 500;
+            font-weight: 600;
+            font-size: 1.2em;
+        }
+
+        .finale-cta {
+            font-size: clamp(0.8rem, 1.8vw, 1rem);
+            color: rgba(255,255,255,0.7);
+            text-align: center;
+            line-height: 1.6;
+            max-width: 400px;
+        }
+
+        .finale-actions {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
         }
 
         .finale-btn {
@@ -1434,6 +1477,19 @@
 
         .finale-btn.primary:hover {
             box-shadow: 0 10px 50px rgba(212, 168, 83, 0.5);
+        }
+
+        .finale-btn.secondary {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.3);
+            color: rgba(255,255,255,0.8);
+            padding: 18px 35px;
+        }
+
+        .finale-btn.secondary:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+            background: rgba(212, 168, 83, 0.1);
         }
 
         .finale-btn.big {
@@ -2510,8 +2566,17 @@
 
     <!-- Finale Buttons -->
     <div class="finale-buttons" id="finale-buttons">
+        <div class="finale-congrats">
+            <div class="congrats-title" data-i18n="congratsTitle">Gratulujeme!</div>
+            <div class="congrats-subtitle" data-i18n="congratsSubtitle">Zvládli jste to na výbornou.</div>
+            <div class="congrats-promo" data-i18n="congratsPromo">V reálu se o perfektní nastavení Vašeho kina postaráme my.</div>
+        </div>
         <div class="finale-time" id="finale-time"></div>
-        <button class="finale-btn primary big" id="play-video-btn" data-i18n="playVideo">Spustit projekci</button>
+        <div class="finale-cta" data-i18n="finaleCta">Zapište svůj výsledek a soutěžte o zajímavé ceny!<br>Vyhrává nejšikovnější a nejrychlejší.</div>
+        <div class="finale-actions">
+            <button class="finale-btn primary big" id="play-video-btn" data-i18n="playVideo">Spustit projekci</button>
+            <button class="finale-btn secondary" id="enter-score-btn" data-i18n="enterScore">Zapsat skóre</button>
+        </div>
         <div class="share-buttons">
             <span class="share-label" data-i18n="share">Sdílet:</span>
             <button class="share-btn" data-platform="facebook" title="Facebook">
@@ -2690,7 +2755,12 @@
                 tableCinema: 'Kino',
                 playAgain: 'Hrát znovu',
                 share: 'Sdílet:',
-                copied: 'Odkaz zkopírován!'
+                copied: 'Odkaz zkopírován!',
+                congratsTitle: 'Gratulujeme!',
+                congratsSubtitle: 'Zvládli jste to na výbornou.',
+                congratsPromo: 'V reálu se o perfektní nastavení Vašeho kina postaráme my.',
+                finaleCta: 'Zapište svůj výsledek a soutěžte o zajímavé ceny!<br>Vyhrává nejšikovnější a nejrychlejší.',
+                enterScore: 'Zapsat skóre'
             },
             en: {
                 instructions: '<strong>The projection is about to start!</strong><br>Move the sliders until the image is perfect.<br>The closer you get, the brighter the slider glows. Try to do it <strong>as fast as you can</strong>!',
@@ -2728,7 +2798,12 @@
                 tableCinema: 'Cinema',
                 playAgain: 'Play again',
                 share: 'Share:',
-                copied: 'Link copied!'
+                copied: 'Link copied!',
+                congratsTitle: 'Congratulations!',
+                congratsSubtitle: 'You did a perfect job.',
+                congratsPromo: 'In real life, we\'ll take care of the perfect setup for your cinema.',
+                finaleCta: 'Enter your score and compete for exciting prizes!<br>The fastest and most skilled wins.',
+                enterScore: 'Enter score'
             }
         };
 
@@ -2809,6 +2884,7 @@
             testPatternBlue: document.getElementById('test-pattern-blue'),
             testPatternWhite: document.getElementById('test-pattern-white'),
             playVideoBtn: document.getElementById('play-video-btn'),
+            enterScoreBtn: document.getElementById('enter-score-btn'),
             videoOverlay: document.getElementById('video-overlay'),
             videoClose: document.getElementById('video-close'),
             greetingVideo: document.getElementById('greeting-video'),
@@ -3670,6 +3746,7 @@
         }
 
         elements.playVideoBtn.addEventListener('click', openVideo);
+        elements.enterScoreBtn.addEventListener('click', showLeaderboard);
         elements.videoClose.addEventListener('click', closeVideo);
 
         // Close on overlay click (outside video)
