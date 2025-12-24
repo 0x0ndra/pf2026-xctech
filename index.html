@@ -1370,33 +1370,6 @@
             transform: translateX(-50%) translateY(0);
         }
 
-        .finale-congrats {
-            text-align: center;
-            margin-bottom: 5px;
-        }
-
-        .congrats-title {
-            font-family: 'Raleway', sans-serif;
-            font-size: clamp(1.5rem, 4vw, 2.5rem);
-            font-weight: 300;
-            color: var(--gold);
-            letter-spacing: 0.15em;
-            margin-bottom: 5px;
-        }
-
-        .congrats-subtitle {
-            font-size: clamp(0.9rem, 2vw, 1.1rem);
-            color: rgba(255,255,255,0.9);
-            font-weight: 300;
-            margin-bottom: 10px;
-        }
-
-        .congrats-promo {
-            font-size: clamp(0.75rem, 1.5vw, 0.9rem);
-            color: rgba(255,255,255,0.5);
-            font-style: italic;
-        }
-
         .finale-time {
             font-size: 16px;
             font-weight: 300;
@@ -1410,19 +1383,11 @@
             font-size: 1.2em;
         }
 
-        .finale-cta {
-            font-size: clamp(0.8rem, 1.8vw, 1rem);
-            color: rgba(255,255,255,0.7);
-            text-align: center;
-            line-height: 1.6;
-            max-width: 400px;
-        }
-
         .finale-actions {
             display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            justify-content: center;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
         }
 
         .finale-btn {
@@ -1479,17 +1444,24 @@
             box-shadow: 0 10px 50px rgba(212, 168, 83, 0.5);
         }
 
-        .finale-btn.secondary {
-            background: transparent;
-            border: 1px solid rgba(255,255,255,0.3);
-            color: rgba(255,255,255,0.8);
-            padding: 18px 35px;
+        .finale-secondary {
+            margin-top: 5px;
         }
 
-        .finale-btn.secondary:hover {
-            border-color: var(--gold);
+        .finale-link {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.6);
+            font-size: 14px;
+            font-weight: 400;
+            cursor: pointer;
+            padding: 10px 20px;
+            transition: all 0.3s ease;
+            letter-spacing: 0.05em;
+        }
+
+        .finale-link:hover {
             color: var(--gold);
-            background: rgba(212, 168, 83, 0.1);
         }
 
         .finale-btn.big {
@@ -1713,6 +1685,45 @@
             color: rgba(255,255,255,0.7);
             letter-spacing: 0.1em;
             margin: 0;
+        }
+
+        /* Leaderboard Congrats */
+        .leaderboard-congrats {
+            text-align: center;
+            padding: 25px 20px;
+            display: none;
+        }
+
+        .leaderboard-congrats.visible {
+            display: block;
+        }
+
+        .congrats-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--gold) 0%, #f0c97a 100%);
+            color: var(--black);
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 8px 20px;
+            border-radius: 20px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 20px rgba(212, 168, 83, 0.4);
+        }
+
+        .leaderboard-congrats .congrats-promo {
+            font-size: 0.95rem;
+            color: rgba(255,255,255,0.6);
+            font-style: italic;
+            margin: 0;
+        }
+
+        .competition-cta {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.5);
+            margin: 0 0 20px 0;
+            line-height: 1.5;
         }
 
         /* Score Form */
@@ -2566,16 +2577,12 @@
 
     <!-- Finale Buttons -->
     <div class="finale-buttons" id="finale-buttons">
-        <div class="finale-congrats">
-            <div class="congrats-title" data-i18n="congratsTitle">Gratulujeme!</div>
-            <div class="congrats-subtitle" data-i18n="congratsSubtitle">Zvládli jste to na výbornou.</div>
-            <div class="congrats-promo" data-i18n="congratsPromo">V reálu se o perfektní nastavení Vašeho kina postaráme my.</div>
-        </div>
         <div class="finale-time" id="finale-time"></div>
-        <div class="finale-cta" data-i18n="finaleCta">Zapište svůj výsledek a soutěžte o zajímavé ceny!<br>Vyhrává nejšikovnější a nejrychlejší.</div>
         <div class="finale-actions">
             <button class="finale-btn primary big" id="play-video-btn" data-i18n="playVideo">Spustit projekci</button>
-            <button class="finale-btn secondary" id="enter-score-btn" data-i18n="enterScore">Zapsat skóre</button>
+        </div>
+        <div class="finale-secondary">
+            <button class="finale-link" id="enter-score-btn" data-i18n="enterScoreLink">Zapsat se do žebříčku →</button>
         </div>
         <div class="share-buttons">
             <span class="share-label" data-i18n="share">Sdílet:</span>
@@ -2636,12 +2643,19 @@
                 </div>
             </div>
 
+            <!-- Congrats Section (shown when coming from game) -->
+            <div class="leaderboard-congrats" id="leaderboard-congrats">
+                <div class="congrats-badge" data-i18n="congratsBadge">Perfektní nastavení!</div>
+                <p class="congrats-promo" data-i18n="congratsPromo">V reálu se o perfektní nastavení Vašeho kina postaráme my.</p>
+            </div>
+
             <!-- Score Submit Form -->
             <div class="score-form" id="score-form">
                 <div class="your-time">
                     <span data-i18n="yourTime">Váš čas:</span>
                     <strong id="leaderboard-time">00:00.00</strong>
                 </div>
+                <p class="competition-cta" data-i18n="competitionCta">Soutěžte o zajímavé ceny! Vyhrává nejšikovnější a nejrychlejší.</p>
                 <div class="form-fields">
                     <input type="text" id="player-name" placeholder="Jméno" maxlength="50" data-i18n-placeholder="namePlaceholder">
                     <input type="text" id="player-cinema" placeholder="Kino" maxlength="100" data-i18n-placeholder="cinemaPlaceholder">
@@ -2756,11 +2770,10 @@
                 playAgain: 'Hrát znovu',
                 share: 'Sdílet:',
                 copied: 'Odkaz zkopírován!',
-                congratsTitle: 'Gratulujeme!',
-                congratsSubtitle: 'Zvládli jste to na výbornou.',
+                enterScoreLink: 'Zapsat se do žebříčku →',
+                congratsBadge: 'Perfektní nastavení!',
                 congratsPromo: 'V reálu se o perfektní nastavení Vašeho kina postaráme my.',
-                finaleCta: 'Zapište svůj výsledek a soutěžte o zajímavé ceny!<br>Vyhrává nejšikovnější a nejrychlejší.',
-                enterScore: 'Zapsat skóre'
+                competitionCta: 'Soutěžte o zajímavé ceny! Vyhrává nejšikovnější a nejrychlejší.'
             },
             en: {
                 instructions: '<strong>The projection is about to start!</strong><br>Move the sliders until the image is perfect.<br>The closer you get, the brighter the slider glows. Try to do it <strong>as fast as you can</strong>!',
@@ -2799,11 +2812,10 @@
                 playAgain: 'Play again',
                 share: 'Share:',
                 copied: 'Link copied!',
-                congratsTitle: 'Congratulations!',
-                congratsSubtitle: 'You did a perfect job.',
+                enterScoreLink: 'Enter the leaderboard →',
+                congratsBadge: 'Perfect setup!',
                 congratsPromo: 'In real life, we\'ll take care of the perfect setup for your cinema.',
-                finaleCta: 'Enter your score and compete for exciting prizes!<br>The fastest and most skilled wins.',
-                enterScore: 'Enter score'
+                competitionCta: 'Compete for exciting prizes! The fastest and most skilled wins.'
             }
         };
 
@@ -2889,6 +2901,7 @@
             videoClose: document.getElementById('video-close'),
             greetingVideo: document.getElementById('greeting-video'),
             leaderboardOverlay: document.getElementById('leaderboard-overlay'),
+            leaderboardCongrats: document.getElementById('leaderboard-congrats'),
             scoreForm: document.getElementById('score-form'),
             scoreSubmitted: document.getElementById('score-submitted'),
             leaderboardTime: document.getElementById('leaderboard-time'),
@@ -3862,6 +3875,13 @@
 
             // Show time
             elements.leaderboardTime.textContent = formatTime(state.finalTime);
+
+            // Show congrats section only if user just completed the game
+            if (state.finalTime && state.isFinale) {
+                elements.leaderboardCongrats.classList.add('visible');
+            } else {
+                elements.leaderboardCongrats.classList.remove('visible');
+            }
 
             // Load existing scores
             loadLeaderboard();
