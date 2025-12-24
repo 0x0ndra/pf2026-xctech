@@ -1444,26 +1444,6 @@
             box-shadow: 0 10px 50px rgba(212, 168, 83, 0.5);
         }
 
-        .finale-secondary {
-            margin-top: 5px;
-        }
-
-        .finale-link {
-            background: none;
-            border: none;
-            color: rgba(255,255,255,0.6);
-            font-size: 14px;
-            font-weight: 400;
-            cursor: pointer;
-            padding: 10px 20px;
-            transition: all 0.3s ease;
-            letter-spacing: 0.05em;
-        }
-
-        .finale-link:hover {
-            color: var(--gold);
-        }
-
         .finale-btn.big {
             padding: 22px 60px;
             font-size: 15px;
@@ -1586,6 +1566,32 @@
         .video-close:hover {
             border-color: var(--gold);
             color: var(--gold);
+        }
+
+        .video-skip {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.5);
+            border: none;
+            color: rgba(255,255,255,0.5);
+            padding: 8px 16px;
+            font-size: 13px;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 4px;
+            opacity: 0;
+            animation: fadeInSkip 0.5s ease 3s forwards;
+        }
+
+        @keyframes fadeInSkip {
+            to { opacity: 1; }
+        }
+
+        .video-skip:hover {
+            color: rgba(255,255,255,0.9);
+            background: rgba(0,0,0,0.7);
         }
 
         /* Leaderboard Overlay */
@@ -2581,9 +2587,6 @@
         <div class="finale-actions">
             <button class="finale-btn primary big" id="play-video-btn" data-i18n="playVideo">Spustit projekci</button>
         </div>
-        <div class="finale-secondary">
-            <button class="finale-link" id="enter-score-btn" data-i18n="enterScoreLink">Zapsat se do žebříčku →</button>
-        </div>
         <div class="share-buttons">
             <span class="share-label" data-i18n="share">Sdílet:</span>
             <button class="share-btn" data-platform="facebook" title="Facebook">
@@ -2611,6 +2614,7 @@
             <video id="greeting-video" playsinline>
                 <source src="video/XCTECH_Barney_PF2025_CS.mp4" type="video/mp4">
             </video>
+            <button class="video-skip" id="video-skip" data-i18n="skipVideo">Přeskočit →</button>
         </div>
     </div>
 
@@ -2770,7 +2774,7 @@
                 playAgain: 'Hrát znovu',
                 share: 'Sdílet:',
                 copied: 'Odkaz zkopírován!',
-                enterScoreLink: 'Zapsat se do žebříčku →',
+                skipVideo: 'Přeskočit →',
                 congratsBadge: 'Perfektní nastavení!',
                 congratsPromo: 'V reálu se o perfektní nastavení Vašeho kina postaráme my.',
                 competitionCta: 'Soutěžte o zajímavé ceny! Vyhrává nejšikovnější a nejrychlejší.'
@@ -2812,7 +2816,7 @@
                 playAgain: 'Play again',
                 share: 'Share:',
                 copied: 'Link copied!',
-                enterScoreLink: 'Enter the leaderboard →',
+                skipVideo: 'Skip →',
                 congratsBadge: 'Perfect setup!',
                 congratsPromo: 'In real life, we\'ll take care of the perfect setup for your cinema.',
                 competitionCta: 'Compete for exciting prizes! The fastest and most skilled wins.'
@@ -2896,9 +2900,9 @@
             testPatternBlue: document.getElementById('test-pattern-blue'),
             testPatternWhite: document.getElementById('test-pattern-white'),
             playVideoBtn: document.getElementById('play-video-btn'),
-            enterScoreBtn: document.getElementById('enter-score-btn'),
             videoOverlay: document.getElementById('video-overlay'),
             videoClose: document.getElementById('video-close'),
+            videoSkip: document.getElementById('video-skip'),
             greetingVideo: document.getElementById('greeting-video'),
             leaderboardOverlay: document.getElementById('leaderboard-overlay'),
             leaderboardCongrats: document.getElementById('leaderboard-congrats'),
@@ -3759,7 +3763,6 @@
         }
 
         elements.playVideoBtn.addEventListener('click', openVideo);
-        elements.enterScoreBtn.addEventListener('click', showLeaderboard);
         elements.videoClose.addEventListener('click', closeVideo);
 
         // Close on overlay click (outside video)
@@ -3771,6 +3774,12 @@
 
         // Close on video end - show leaderboard
         elements.greetingVideo.addEventListener('ended', () => {
+            closeVideo();
+            showLeaderboard();
+        });
+
+        // Skip video button - also shows leaderboard
+        elements.videoSkip.addEventListener('click', () => {
             closeVideo();
             showLeaderboard();
         });
