@@ -4,7 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PF 2026 | XC tech</title>
-    <meta name="description" content="PF 2026 - XC tech s.r.o.">
+    <meta name="description" content="Interaktivní PF 2026 od XC tech - nalaďte projektor a zapište se mezi Cinema Legends!">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="logo_white.png">
+    <link rel="apple-touch-icon" href="logo_white.png">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://pf2026.xctech.cz/">
+    <meta property="og:title" content="PF 2026 | XC tech">
+    <meta property="og:description" content="Interaktivní PF 2026 - nalaďte projektor a zapište se mezi Cinema Legends!">
+    <meta property="og:image" content="https://pf2026.xctech.cz/og-image-v2.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:locale" content="cs_CZ">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="PF 2026 | XC tech">
+    <meta name="twitter:description" content="Interaktivní PF 2026 - nalaďte projektor a zapište se mezi Cinema Legends!">
+    <meta name="twitter:image" content="https://pf2026.xctech.cz/og-image-v2.jpg">
+
+    <!-- Preload critical assets -->
+    <link rel="preload" href="video/xctech_logo_lights.mp4" as="video" type="video/mp4">
+    <link rel="preload" href="music/ambient.mp3" as="audio" type="audio/mpeg">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Raleway:wght@200;300;400&display=swap" rel="stylesheet">
@@ -1601,7 +1626,7 @@
             z-index: 400;
             background: linear-gradient(180deg, rgba(0,0,0,0.98) 0%, rgba(10,10,10,0.98) 100%);
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: center;
             opacity: 0;
             visibility: hidden;
@@ -1619,6 +1644,7 @@
             width: 100%;
             max-width: 600px;
             text-align: center;
+            margin: auto;
         }
 
         .leaderboard-header {
@@ -1806,9 +1832,32 @@
         }
 
         .submit-score-btn:disabled {
-            opacity: 0.5;
+            opacity: 0.7;
             cursor: not-allowed;
             transform: none;
+        }
+
+        .submit-score-btn.loading {
+            position: relative;
+            color: transparent;
+        }
+
+        .submit-score-btn.loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin: -10px 0 0 -10px;
+            border: 2px solid rgba(0,0,0,0.2);
+            border-top-color: #000;
+            border-radius: 50%;
+            animation: btnSpinner 0.8s linear infinite;
+        }
+
+        @keyframes btnSpinner {
+            to { transform: rotate(360deg); }
         }
 
         /* Score Submitted */
@@ -1818,6 +1867,38 @@
             border-radius: 16px;
             padding: 25px;
             margin-bottom: 30px;
+        }
+
+        .first-place-msg {
+            margin-top: 15px;
+            padding: 15px;
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 180, 0, 0.1));
+            border-radius: 12px;
+            text-align: center;
+            animation: firstPlaceMsgPulse 2s ease-in-out infinite;
+        }
+
+        .first-place-msg .crown-icon {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 8px;
+            animation: crownBounce 1s ease-in-out infinite;
+        }
+
+        .first-place-msg span:last-child {
+            color: var(--gold);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        @keyframes firstPlaceMsgPulse {
+            0%, 100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.2); }
+            50% { box-shadow: 0 0 25px rgba(255, 215, 0, 0.4); }
+        }
+
+        @keyframes crownBounce {
+            0%, 100% { transform: translateY(0) rotate(-5deg); }
+            50% { transform: translateY(-5px) rotate(5deg); }
         }
 
         .rank-display {
@@ -1833,13 +1914,26 @@
             margin-top: 10px;
         }
 
+        /* Cinema Legends Title */
+        .cinema-legends-title {
+            font-size: 1.3rem;
+            font-weight: 400;
+            color: var(--gold);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin: 0 0 15px 0;
+            text-align: center;
+        }
+
         /* Leaderboard Table */
         .leaderboard-table-container {
             max-height: 300px;
             overflow-y: auto;
+            overflow-x: hidden;
             margin-bottom: 30px;
             border-radius: 12px;
             border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(20,20,20,0.98);
         }
 
         .leaderboard-table {
@@ -1876,15 +1970,58 @@
             color: rgba(255,255,255,0.8);
         }
 
-        .leaderboard-table td:first-child {
+        .leaderboard-table .crown-col {
+            width: 24px;
+            padding: 12px 4px;
+            text-align: center;
+        }
+
+        .leaderboard-table td:nth-child(2) {
             text-align: center;
             font-weight: 600;
             color: rgba(255,255,255,0.4);
         }
 
-        .leaderboard-table tr:nth-child(1) td:first-child { color: #ffd700; }
-        .leaderboard-table tr:nth-child(2) td:first-child { color: #c0c0c0; }
-        .leaderboard-table tr:nth-child(3) td:first-child { color: #cd7f32; }
+        .leaderboard-table tr:nth-child(1) td:nth-child(2) { color: #ffd700; }
+        .leaderboard-table tr:nth-child(2) td:nth-child(2) { color: #c0c0c0; }
+        .leaderboard-table tr:nth-child(3) td:nth-child(2) { color: #cd7f32; }
+
+        /* First place special effect */
+        .leaderboard-table tbody tr:first-child {
+            background:
+                linear-gradient(90deg,
+                    transparent 0%,
+                    rgba(255, 215, 0, 0.4) 50%,
+                    transparent 100%),
+                linear-gradient(90deg,
+                    rgba(255, 215, 0, 0.08) 0%,
+                    rgba(255, 215, 0, 0.15) 50%,
+                    rgba(255, 215, 0, 0.08) 100%);
+            background-size: 200% 100%, 100% 100%;
+            background-position: -100% 0, 0 0;
+            animation: firstPlaceShimmer 6s ease-in-out infinite, firstPlaceGlow 3s ease-in-out infinite;
+        }
+
+        .leaderboard-table tbody tr:first-child td {
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            background: transparent;
+        }
+
+        .leaderboard-table tbody tr:first-child td:last-child {
+            width: 100%;
+        }
+
+        @keyframes firstPlaceGlow {
+            0%, 100% { box-shadow: inset 0 0 15px rgba(255, 215, 0, 0.1); }
+            50% { box-shadow: inset 0 0 25px rgba(255, 215, 0, 0.25); }
+        }
+
+        @keyframes firstPlaceShimmer {
+            0% { background-position: -100% 0, 0 0; }
+            50% { background-position: 200% 0, 0 0; }
+            100% { background-position: 200% 0, 0 0; }
+        }
 
         .leaderboard-table tr.highlight {
             background: rgba(212, 168, 83, 0.1);
@@ -1892,6 +2029,19 @@
 
         .leaderboard-table tr.highlight td {
             color: var(--gold);
+        }
+
+        .leaderboard-table .mobile-icon {
+            display: inline-block;
+            vertical-align: middle;
+            margin-left: 6px;
+            opacity: 0.5;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .leaderboard-table tr.highlight .mobile-icon {
+            color: var(--gold);
+            opacity: 0.7;
         }
 
         .leaderboard-table tbody tr:hover {
@@ -2219,6 +2369,612 @@
             .leaderboard-table th,
             .leaderboard-table td {
                 padding: 10px 8px;
+            }
+        }
+
+        /* Share Modal */
+        .share-modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 500;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s ease;
+            padding: 20px;
+        }
+
+        .share-modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .share-modal {
+            background: linear-gradient(180deg, rgba(30,30,30,0.98) 0%, rgba(15,15,15,0.98) 100%);
+            border: 1px solid rgba(212, 168, 83, 0.3);
+            border-radius: 20px;
+            padding: 40px 30px;
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+            transform: scale(0.9) translateY(20px);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(212, 168, 83, 0.1);
+        }
+
+        .share-modal-overlay.visible .share-modal {
+            transform: scale(1) translateY(0);
+        }
+
+        .share-modal-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .share-modal h2 {
+            font-size: 1.5rem;
+            font-weight: 300;
+            color: var(--gold);
+            margin: 0 0 10px 0;
+            letter-spacing: 0.05em;
+        }
+
+        .share-modal p {
+            font-size: 1rem;
+            color: rgba(255,255,255,0.7);
+            margin: 0 0 25px 0;
+            line-height: 1.6;
+        }
+
+        .share-modal .share-buttons {
+            justify-content: center;
+            margin-bottom: 25px;
+        }
+
+        .share-modal .share-btn {
+            width: 50px;
+            height: 50px;
+        }
+
+        .share-modal .share-btn svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .share-modal-close {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.6);
+            padding: 10px 30px;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .share-modal-close:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        /* Site Footer */
+        .site-footer {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 10px 15px;
+            font-size: 11px;
+            color: rgba(255,255,255,0.3);
+        }
+
+        .site-footer a, .site-footer button {
+            color: rgba(255,255,255,0.4);
+            text-decoration: none;
+            background: none;
+            border: none;
+            font: inherit;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .site-footer a:hover, .site-footer button:hover {
+            color: var(--gold);
+        }
+
+        .site-footer .separator {
+            color: rgba(255,255,255,0.2);
+        }
+
+        .site-footer .dev-link {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .site-footer .dev-avatar {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            opacity: 0.6;
+            transition: opacity 0.3s ease;
+        }
+
+        .site-footer .dev-link:hover .dev-avatar {
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .site-footer {
+                padding: 8px 10px;
+                font-size: 10px;
+                gap: 10px;
+            }
+
+            .site-footer .dev-avatar {
+                width: 16px;
+                height: 16px;
+            }
+        }
+
+        /* --- INFO MODALS --- */
+        .info-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .info-modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .info-modal-content {
+            background: rgba(15, 20, 25, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            transform: scale(0.9);
+            transition: transform 0.3s;
+        }
+
+        .info-modal-overlay.active .info-modal-content {
+            transform: scale(1);
+        }
+
+        .info-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 25px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .info-modal-header h2 {
+            margin: 0;
+            font-size: 16px;
+            color: var(--gold);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-family: 'Courier New', monospace;
+            font-weight: normal;
+        }
+
+        .info-modal-header h2::before {
+            content: '[ ';
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .info-modal-header h2::after {
+            content: ' ]';
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .info-modal-close {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 32px;
+            cursor: pointer;
+            transition: color 0.3s;
+            line-height: 1;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+        }
+
+        .info-modal-close:hover {
+            color: var(--gold);
+        }
+
+        .info-modal-body {
+            padding: 25px;
+        }
+
+        /* Company Info Styles */
+        .company-info {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .company-logo {
+            height: 40px;
+            opacity: 0.9;
+            margin-bottom: 15px;
+        }
+
+        .company-info h3 {
+            margin: 0 0 8px 0;
+            font-size: 24px;
+            color: #fff;
+            font-weight: normal;
+        }
+
+        .company-tagline {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 11px;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .company-desc {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .company-desc p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin: 25px 0;
+        }
+
+        .service-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px 10px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .service-card:hover {
+            background: rgba(212, 175, 55, 0.1);
+            border-color: rgba(212, 175, 55, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .service-icon {
+            width: 32px;
+            height: 32px;
+            margin: 0 auto 10px;
+            color: #888;
+            transition: all 0.3s;
+        }
+
+        .service-card:hover .service-icon {
+            color: var(--gold);
+            transform: scale(1.1);
+        }
+
+        .service-card h4 {
+            margin: 0 0 5px 0;
+            font-size: 13px;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .service-card p {
+            margin: 0;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
+            line-height: 1.4;
+        }
+
+        .company-footer {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .company-link {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .company-link:hover {
+            background: rgba(212, 175, 55, 0.1);
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        .company-link svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .developer-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 12px;
+            font-weight: normal;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .developer-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.3);
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .developer-btn svg {
+            width: 14px;
+            height: 14px;
+            transition: transform 0.3s;
+        }
+
+        .developer-btn:hover svg {
+            transform: translateX(2px);
+        }
+
+        /* Developer Info Styles */
+        .dev-info {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .avatar-wrapper {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 20px;
+        }
+
+        .dev-avatar-large {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 2px solid var(--gold);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.4), inset 0 0 20px rgba(212, 175, 55, 0.1);
+            display: block;
+            position: relative;
+            z-index: 1;
+        }
+
+        .avatar-ring {
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            animation: pulse-ring 2s infinite;
+        }
+
+        @keyframes pulse-ring {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+            50% {
+                transform: scale(1.05);
+                opacity: 0.8;
+            }
+        }
+
+        .username-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            margin-bottom: 12px;
+        }
+
+        .prefix {
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.4);
+            font-weight: normal;
+        }
+
+        .dev-info h3 {
+            margin: 0;
+            font-size: 26px;
+            color: var(--gold);
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+
+        .dev-name {
+            color: #fff;
+            font-size: 16px;
+            margin: 0 0 8px 0;
+            letter-spacing: 0.5px;
+        }
+
+        .dev-title {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 11px;
+            margin: 0 0 15px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .terminal-line {
+            background: rgba(0, 0, 0, 0.3);
+            border-left: 3px solid var(--gold);
+            padding: 12px 15px;
+            margin: 15px auto 0;
+            max-width: 450px;
+            text-align: left;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .prompt {
+            color: var(--gold);
+            margin-right: 8px;
+            font-weight: bold;
+        }
+
+        .dev-bio {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+            font-style: italic;
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        .tech-stack {
+            margin: 25px 0;
+        }
+
+        .tech-label {
+            font-size: 10px;
+            letter-spacing: 2px;
+            color: #888;
+            margin-bottom: 10px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .tech-label::before {
+            content: '// ';
+            color: rgba(212, 175, 55, 0.5);
+        }
+
+        .tech-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tech-tag {
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: var(--gold);
+        }
+
+        .dev-links {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 25px 0;
+        }
+
+        .modal-dev-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .modal-dev-link:hover {
+            background: rgba(212, 175, 55, 0.1);
+            border-color: var(--gold);
+            color: var(--gold);
+            transform: translateX(5px);
+        }
+
+        .modal-dev-link svg {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        .modal-dev-link span {
+            font-size: 14px;
+        }
+
+        .dev-footer {
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .dev-footer p {
+            margin: 5px 0;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 13px;
+        }
+
+        .copyright {
+            font-size: 11px !important;
+            color: rgba(255, 255, 255, 0.3) !important;
+        }
+
+        @media (max-width: 768px) {
+            .services-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .service-card {
+                padding: 12px;
             }
         }
 
@@ -2674,13 +3430,19 @@
                     <span data-i18n="yourRank">Tvoje pozice:</span>
                     <strong id="player-rank">#1</strong>
                 </div>
+                <div class="first-place-msg" id="first-place-msg" style="display: none;">
+                    <span class="crown-icon">👑</span>
+                    <span data-i18n="firstPlaceMsg">Jsi nejlepší, jsi totální legenda mezi kinaři!!!</span>
+                </div>
             </div>
 
             <!-- Leaderboard Table -->
+            <h3 class="cinema-legends-title">Cinema Legends</h3>
             <div class="leaderboard-table-container">
                 <table class="leaderboard-table" id="leaderboard-table">
                     <thead>
                         <tr>
+                            <th class="crown-col"></th>
                             <th>#</th>
                             <th data-i18n="tableTime">Čas</th>
                             <th data-i18n="tableName">Jméno</th>
@@ -2711,6 +3473,175 @@
                 <button class="share-btn" data-platform="copy" title="Kopírovat odkaz">
                     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Modal (appears after score submission) -->
+    <div class="share-modal-overlay" id="share-modal-overlay">
+        <div class="share-modal">
+            <div class="share-modal-icon">🎬</div>
+            <h2 id="share-modal-title">Líbilo se Vám naše PF?</h2>
+            <p id="share-modal-text">Pošlete ho vašim kolegům nebo kamarádům kinařům!</p>
+            <div class="share-buttons">
+                <button class="share-btn" data-platform="facebook" title="Facebook">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                </button>
+                <button class="share-btn" data-platform="twitter" title="X (Twitter)">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                </button>
+                <button class="share-btn" data-platform="linkedin" title="LinkedIn">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                </button>
+                <button class="share-btn" data-platform="email" title="E-mail">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
+                </button>
+                <button class="share-btn" data-platform="copy" title="Kopírovat odkaz">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                </button>
+            </div>
+            <button class="share-modal-close" id="share-modal-close">Zavřít</button>
+        </div>
+    </div>
+
+    <!-- Site Footer -->
+    <footer class="site-footer">
+        <button id="open-xctech-modal">XC tech s.r.o.</button>
+    </footer>
+
+    <!-- XC TECH MODAL -->
+    <div id="xctech-modal" class="info-modal-overlay">
+        <div class="info-modal-content">
+            <div class="info-modal-header">
+                <h2>About XC Tech</h2>
+                <button class="info-modal-close" id="close-xctech">&times;</button>
+            </div>
+            <div class="info-modal-body">
+                <div class="company-info">
+                    <img src="logo_white.png" alt="XC Tech" class="company-logo">
+                    <h3>XC Tech s.r.o.</h3>
+                    <p class="company-tagline">System Integration for Digital Cinemas & AV Technology</p>
+                </div>
+
+                <div class="company-desc">
+                    <p>We deliver reliable technology, precise integration and long-term technical support with customized solutions addressing individual client needs.</p>
+                </div>
+
+                <div class="services-grid">
+                    <div class="service-card">
+                        <svg class="service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="2" y="7" width="20" height="15" rx="2" ry="2"/>
+                            <polyline points="17 2 12 7 7 2"/>
+                        </svg>
+                        <h4>Digital Cinema</h4>
+                        <p>DCI projectors, servers, immersive audio</p>
+                    </div>
+                    <div class="service-card">
+                        <svg class="service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M12 1v6m0 6v6M1 12h6m6 0h6"/>
+                            <path d="M4.22 4.22l4.24 4.24m7.08 0l4.24-4.24M4.22 19.78l4.24-4.24m7.08 0l4.24 4.24"/>
+                        </svg>
+                        <h4>System Integration</h4>
+                        <p>AV and IT infrastructure solutions</p>
+                    </div>
+                    <div class="service-card">
+                        <svg class="service-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                        </svg>
+                        <h4>24/7 Support</h4>
+                        <p>Remote management & maintenance</p>
+                    </div>
+                </div>
+
+                <div class="company-footer">
+                    <a href="https://www.xctech.cz" target="_blank" rel="noopener" class="company-link">
+                        <span>Visit xctech.cz</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/>
+                        </svg>
+                    </a>
+                    <button class="developer-btn" id="open-developer">
+                        <span>Meet the Developer</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 18l6-6-6-6"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DEVELOPER MODAL -->
+    <div id="about-modal" class="info-modal-overlay">
+        <div class="info-modal-content">
+            <div class="info-modal-header">
+                <h2>About Developer</h2>
+                <button class="info-modal-close" id="close-about">&times;</button>
+            </div>
+            <div class="info-modal-body">
+                <div class="dev-info">
+                    <div class="avatar-wrapper">
+                        <img src="https://github.com/0x0ndra.png" alt="0x0ndra" class="dev-avatar-large">
+                        <div class="avatar-ring"></div>
+                    </div>
+                    <div class="username-wrapper">
+                        <span class="prefix">root@</span><h3>0x0ndra</h3>
+                    </div>
+                    <p class="dev-name">Ondřej Vlášek</p>
+                    <p class="dev-title">System Integrator & Cinema Tech Engineer</p>
+                    <div class="terminal-line">
+                        <span class="prompt">$</span>
+                        <span class="dev-bio">Developer, integrator, and builder of systems that are meant to work, not obey.</span>
+                    </div>
+                </div>
+
+                <div class="tech-stack">
+                    <div class="tech-label">TECH STACK</div>
+                    <div class="tech-tags">
+                        <span class="tech-tag">JavaScript</span>
+                        <span class="tech-tag">Node.js</span>
+                        <span class="tech-tag">Express</span>
+                        <span class="tech-tag">HTML/CSS</span>
+                    </div>
+                </div>
+
+                <div class="dev-links">
+                    <a href="https://ondra-vlasek.cz" target="_blank" rel="noopener" class="modal-dev-link">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="2" y1="12" x2="22" y2="12"/>
+                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                        </svg>
+                        <span>ondra-vlasek.cz</span>
+                    </a>
+                    <a href="https://github.com/0x0ndra" target="_blank" rel="noopener" class="modal-dev-link">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                        </svg>
+                        <span>github.com/0x0ndra</span>
+                    </a>
+                    <a href="mailto:ondra.vlasek@xctech.cz" class="modal-dev-link">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                            <polyline points="22,6 12,13 2,6"/>
+                        </svg>
+                        <span>ondra.vlasek@xctech.cz</span>
+                    </a>
+                    <a href="https://www.xctech.cz" target="_blank" rel="noopener" class="modal-dev-link">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="2" y1="12" x2="22" y2="12"/>
+                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                        </svg>
+                        <span>xctech.cz</span>
+                    </a>
+                </div>
+
+                <div class="dev-footer">
+                    <p>Built for XC Tech</p>
+                    <p class="copyright">© 2025 XC Tech. All rights reserved.</p>
+                </div>
             </div>
         </div>
     </div>
@@ -2763,11 +3694,13 @@
                 brightnessTip: 'Upravte jas obrazu',
                 instructionsShort: 'Nastavte obraz posuvníky',
                 leaderboardTitle: 'Zapiš se do historie!',
+                cinemaLegends: 'Cinema Legends',
                 namePlaceholder: 'Jméno',
                 cinemaPlaceholder: 'Kino',
                 emailPlaceholder: 'E-mail (nepovinné)',
                 submitScore: 'Zapsat skóre',
                 yourRank: 'Tvoje pozice:',
+                firstPlaceMsg: 'Jsi nejlepší, jsi totální legenda mezi kinaři!!!',
                 tableTime: 'Čas',
                 tableName: 'Jméno',
                 tableCinema: 'Kino',
@@ -2776,8 +3709,11 @@
                 copied: 'Odkaz zkopírován!',
                 skipVideo: 'Přeskočit →',
                 congratsBadge: 'Perfektní nastavení!',
-                congratsPromo: 'V reálu se o perfektní nastavení Vašeho kina postaráme my.',
-                competitionCta: 'Soutěžte o zajímavé ceny! Vyhrává nejšikovnější a nejrychlejší.'
+                congratsPromo: 'Dobrá práce! Ale v reálu se o perfektní nastavení Vašeho kina rádi postaráme my. 😉',
+                competitionCta: 'Soutěžte o zajímavé ceny! Vyhrává nejšikovnější a nejrychlejší.',
+                shareModalTitle: 'Líbilo se Vám naše PF?',
+                shareModalText: 'Pošlete ho vašim kolegům nebo kamarádům kinařům!',
+                shareModalClose: 'Zavřít'
             },
             en: {
                 instructions: '<strong>The projection is about to start!</strong><br>Move the sliders until the image is perfect.<br>The closer you get, the brighter the slider glows. Try to do it <strong>as fast as you can</strong>!',
@@ -2805,11 +3741,13 @@
                 brightnessTip: 'Adjust image brightness',
                 instructionsShort: 'Adjust image with sliders',
                 leaderboardTitle: 'Enter the hall of fame!',
+                cinemaLegends: 'Cinema Legends',
                 namePlaceholder: 'Name',
                 cinemaPlaceholder: 'Cinema',
                 emailPlaceholder: 'E-mail (optional)',
                 submitScore: 'Submit score',
                 yourRank: 'Your rank:',
+                firstPlaceMsg: 'You are the best, an absolute legend among projectionists!!!',
                 tableTime: 'Time',
                 tableName: 'Name',
                 tableCinema: 'Cinema',
@@ -2818,8 +3756,11 @@
                 copied: 'Link copied!',
                 skipVideo: 'Skip →',
                 congratsBadge: 'Perfect setup!',
-                congratsPromo: 'In real life, we\'ll take care of the perfect setup for your cinema.',
-                competitionCta: 'Compete for exciting prizes! The fastest and most skilled wins.'
+                congratsPromo: 'Great job! But in real life, we\'ll take care of the perfect setup for your cinema. 😉',
+                competitionCta: 'Compete for exciting prizes! The fastest and most skilled wins.',
+                shareModalTitle: 'Did you enjoy our New Year greeting?',
+                shareModalText: 'Share it with your colleagues or cinema friends!',
+                shareModalClose: 'Close'
             }
         };
 
@@ -2853,7 +3794,9 @@
             timerStarted: false,
             timerStart: null,
             timerInterval: null,
-            finalTime: null
+            finalTime: null,
+            gameToken: null,
+            interactionCount: 0
         };
 
         // =====================
@@ -2920,7 +3863,12 @@
             lbVideoRed: document.getElementById('lb-video-red'),
             lbVideoGreen: document.getElementById('lb-video-green'),
             lbVideoBlue: document.getElementById('lb-video-blue'),
-            lbVideoWhite: document.getElementById('lb-video-white')
+            lbVideoWhite: document.getElementById('lb-video-white'),
+            // Share modal
+            shareModalOverlay: document.getElementById('share-modal-overlay'),
+            shareModalTitle: document.getElementById('share-modal-title'),
+            shareModalText: document.getElementById('share-modal-text'),
+            shareModalClose: document.getElementById('share-modal-close')
         };
 
         // =====================
@@ -2989,6 +3937,17 @@
             elements.langBtns.forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.lang === lang);
             });
+
+            // Update share modal text
+            if (elements.shareModalTitle) {
+                elements.shareModalTitle.textContent = i18n[lang].shareModalTitle;
+            }
+            if (elements.shareModalText) {
+                elements.shareModalText.textContent = i18n[lang].shareModalText;
+            }
+            if (elements.shareModalClose) {
+                elements.shareModalClose.textContent = i18n[lang].shareModalClose;
+            }
         }
 
         // Initialize language on load
@@ -3003,13 +3962,23 @@
         // =====================
         const shareUrl = 'https://pf2026.xctech.cz';
         const shareTitle = 'PF 2026 | XC tech';
-        const shareText = currentLang === 'cs'
-            ? 'Vyzkoušej interaktivní PF od XC tech!'
-            : 'Try interactive New Year greeting from XC tech!';
+
+        function getShareText() {
+            if (state.finalTime) {
+                const timeStr = formatTime(state.finalTime);
+                return currentLang === 'cs'
+                    ? `Naladil jsem projektor za ${timeStr}! Zvládneš to rychleji? 🎬`
+                    : `I tuned the projector in ${timeStr}! Can you beat me? 🎬`;
+            }
+            return currentLang === 'cs'
+                ? 'Vyzkoušej interaktivní PF od XC tech!'
+                : 'Try interactive New Year greeting from XC tech!';
+        }
 
         document.querySelectorAll('.share-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const platform = btn.dataset.platform;
+                const shareText = getShareText();
                 let url;
 
                 switch(platform) {
@@ -3265,6 +4234,8 @@
                 function handleMove(clientX) {
                     // Start timer on first interaction
                     startTimer();
+                    // Track for anti-cheat
+                    trackInteraction();
 
                     const rect = container.getBoundingClientRect();
                     const percent = ((clientX - rect.left) / rect.width) * 100;
@@ -3658,6 +4629,23 @@
             elements.gameInstructions.classList.add('minimized');
         }
 
+        // Track interactions for anti-cheat (debounced)
+        let interactionTimeout = null;
+        function trackInteraction() {
+            state.interactionCount++;
+            // Send to server every 5 interactions (debounced)
+            if (state.gameToken && state.interactionCount % 5 === 0) {
+                clearTimeout(interactionTimeout);
+                interactionTimeout = setTimeout(() => {
+                    fetch('/api/session/interact', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ token: state.gameToken })
+                    }).catch(() => {});
+                }, 100);
+            }
+        }
+
         function stopTimer() {
             if (state.timerInterval) {
                 clearInterval(state.timerInterval);
@@ -3698,7 +4686,18 @@
         // =====================
         // Start Experience
         // =====================
-        function startExperience() {
+        async function startExperience() {
+            // Start game session for anti-cheat
+            try {
+                const response = await fetch('/api/session/start', { method: 'POST' });
+                const data = await response.json();
+                if (data.success) {
+                    state.gameToken = data.token;
+                }
+            } catch (e) {
+                console.log('Session start failed, continuing without token');
+            }
+
             elements.intro.classList.add('hidden');
             elements.controls.classList.add('visible');
             elements.gameInstructions.classList.add('visible');
@@ -3791,6 +4790,9 @@
             }
             if (e.key === 'Escape' && elements.leaderboardOverlay.classList.contains('visible')) {
                 hideLeaderboard();
+            }
+            if (e.key === 'Escape' && elements.shareModalOverlay.classList.contains('visible')) {
+                hideShareModal();
             }
         });
 
@@ -3923,16 +4925,23 @@
         function renderLeaderboard(scores) {
             elements.leaderboardBody.innerHTML = '';
 
+            const mobileIcon = '<svg class="mobile-icon" viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><rect x="5" y="2" width="14" height="20" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12" y1="18" x2="12" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+
             scores.slice(0, 20).forEach((score, index) => {
                 const row = document.createElement('tr');
                 if (score.id === currentPlayerScoreId) {
                     row.classList.add('highlight');
                 }
 
+                const mobileIndicator = score.mobile ? mobileIcon : '';
+
+                const medalIcons = ['🥇', '🥈', '🥉'];
+                const crownIcon = medalIcons[index] || '';
                 row.innerHTML = `
+                    <td class="crown-col">${crownIcon}</td>
                     <td>${index + 1}</td>
                     <td>${formatTime(score.time)}</td>
-                    <td>${escapeHtml(score.name)}</td>
+                    <td>${escapeHtml(score.name)}${mobileIndicator}</td>
                     <td>${escapeHtml(score.cinema)}</td>
                 `;
 
@@ -3958,6 +4967,7 @@
             }
 
             elements.submitScoreBtn.disabled = true;
+            elements.submitScoreBtn.classList.add('loading');
 
             try {
                 const response = await fetch('/api/scores', {
@@ -3969,7 +4979,9 @@
                         name: name,
                         cinema: cinema,
                         email: email || null,
-                        time: state.finalTime
+                        time: state.finalTime,
+                        token: state.gameToken,
+                        mobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
                     })
                 });
 
@@ -3983,30 +4995,121 @@
                     elements.scoreSubmitted.style.display = 'block';
                     elements.playerRank.textContent = `#${data.rank}`;
 
+                    // Show first place message
+                    const firstPlaceMsg = document.getElementById('first-place-msg');
+                    if (data.rank === 1) {
+                        firstPlaceMsg.style.display = 'block';
+                    } else {
+                        firstPlaceMsg.style.display = 'none';
+                    }
+
+                    // Confetti for top 3!
+                    if (data.rank <= 3) {
+                        confetti.burst();
+                    }
+
                     // Reload leaderboard
                     loadLeaderboard();
+
+                    // Show share modal after a short delay
+                    setTimeout(() => {
+                        showShareModal();
+                    }, 800);
                 } else {
                     alert('Chyba při ukládání skóre');
                     elements.submitScoreBtn.disabled = false;
+                    elements.submitScoreBtn.classList.remove('loading');
                 }
             } catch (error) {
                 console.error('Failed to submit score:', error);
                 alert('Chyba při ukládání skóre');
                 elements.submitScoreBtn.disabled = false;
+                elements.submitScoreBtn.classList.remove('loading');
             }
         }
 
         elements.submitScoreBtn.addEventListener('click', submitScore);
+
+        // =====================
+        // Share Modal
+        // =====================
+        function showShareModal() {
+            elements.shareModalOverlay.classList.add('visible');
+        }
+
+        function hideShareModal() {
+            elements.shareModalOverlay.classList.remove('visible');
+        }
+
+        elements.shareModalClose.addEventListener('click', hideShareModal);
+
+        elements.shareModalOverlay.addEventListener('click', (e) => {
+            if (e.target === elements.shareModalOverlay) {
+                hideShareModal();
+            }
+        });
+
+        // =====================
+        // Info Modals (XC Tech & Developer)
+        // =====================
+        const xctechModal = document.getElementById('xctech-modal');
+        const aboutModal = document.getElementById('about-modal');
+        const openXctechBtn = document.getElementById('open-xctech-modal');
+        const closeXctechBtn = document.getElementById('close-xctech');
+        const closeAboutBtn = document.getElementById('close-about');
+        const openDeveloperBtn = document.getElementById('open-developer');
+
+        openXctechBtn.addEventListener('click', () => {
+            xctechModal.classList.add('active');
+        });
+
+        closeXctechBtn.addEventListener('click', () => {
+            xctechModal.classList.remove('active');
+        });
+
+        closeAboutBtn.addEventListener('click', () => {
+            aboutModal.classList.remove('active');
+        });
+
+        openDeveloperBtn.addEventListener('click', () => {
+            xctechModal.classList.remove('active');
+            aboutModal.classList.add('active');
+        });
+
+        xctechModal.addEventListener('click', (e) => {
+            if (e.target === xctechModal) {
+                xctechModal.classList.remove('active');
+            }
+        });
+
+        aboutModal.addEventListener('click', (e) => {
+            if (e.target === aboutModal) {
+                aboutModal.classList.remove('active');
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (xctechModal.classList.contains('active')) {
+                    xctechModal.classList.remove('active');
+                }
+                if (aboutModal.classList.contains('active')) {
+                    aboutModal.classList.remove('active');
+                }
+            }
+        });
 
         elements.closeLeaderboardBtn.addEventListener('click', () => {
             hideLeaderboard();
             resetGame();
         });
 
-        function resetGame() {
+        async function resetGame() {
             // Reset state
             state.timerStarted = false;
             state.finalTime = null;
+            state.gameToken = null;
+            state.interactionCount = 0;
             state.locked = {
                 focus: false,
                 zoom: false,
@@ -4016,6 +5119,15 @@
                 convB: false,
                 brightness: false
             };
+
+            // Get new game token
+            try {
+                const response = await fetch('/api/session/start', { method: 'POST' });
+                const data = await response.json();
+                if (data.success) {
+                    state.gameToken = data.token;
+                }
+            } catch (e) {}
 
             // Randomize values
             Object.keys(state.values).forEach(key => {
