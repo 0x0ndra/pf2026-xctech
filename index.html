@@ -2066,6 +2066,116 @@
             color: var(--gold);
         }
 
+        /* Winners Podium */
+        .winners-podium {
+            margin: 0 0 30px 0;
+            text-align: center;
+        }
+
+        .winners-podium.visible {
+            display: block !important;
+            animation: podiumFadeIn 0.6s ease-out;
+        }
+
+        @keyframes podiumFadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .winners-title {
+            font-family: 'Raleway', sans-serif;
+            font-weight: 300;
+            font-size: 1.3rem;
+            color: #ffd700;
+            text-transform: uppercase;
+            letter-spacing: 0.25em;
+            margin-bottom: 25px;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+        }
+
+        .podium-stage {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 12px;
+            padding: 0 10px;
+        }
+
+        .podium-entry {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 0 1 140px;
+        }
+
+        .podium-medal {
+            font-size: 1.8rem;
+            margin-bottom: 6px;
+        }
+
+        .podium-crown {
+            font-size: 1.2rem;
+            animation: crownBounce 1s ease-in-out infinite;
+            margin-bottom: 2px;
+        }
+
+        .podium-player-name {
+            font-family: 'Raleway', sans-serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #fff;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 130px;
+        }
+
+        .podium-cinema {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 130px;
+        }
+
+        .podium-time {
+            font-family: 'Raleway', sans-serif;
+            font-weight: 300;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 8px;
+        }
+
+        .podium-pillar {
+            width: 100%;
+            border-radius: 6px 6px 0 0;
+        }
+
+        .podium-pillar-1 {
+            height: 100px;
+            background: linear-gradient(180deg, rgba(255, 215, 0, 0.15) 0%, rgba(255, 215, 0, 0.05) 100%);
+            border: 1px solid rgba(255, 215, 0, 0.4);
+            border-bottom: 3px solid #ffd700;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.15), inset 0 0 20px rgba(255, 215, 0, 0.05);
+        }
+
+        .podium-pillar-2 {
+            height: 70px;
+            background: linear-gradient(180deg, rgba(192, 192, 192, 0.15) 0%, rgba(192, 192, 192, 0.05) 100%);
+            border: 1px solid rgba(192, 192, 192, 0.3);
+            border-bottom: 3px solid #c0c0c0;
+        }
+
+        .podium-pillar-3 {
+            height: 50px;
+            background: linear-gradient(180deg, rgba(205, 127, 50, 0.15) 0%, rgba(205, 127, 50, 0.05) 100%);
+            border: 1px solid rgba(205, 127, 50, 0.3);
+            border-bottom: 3px solid #cd7f32;
+        }
+
         /* Success message - above the screen */
         .success-message {
             position: fixed;
@@ -2369,6 +2479,50 @@
             .leaderboard-table th,
             .leaderboard-table td {
                 padding: 10px 8px;
+            }
+
+            .winners-title {
+                font-size: 1.1rem;
+                letter-spacing: 0.15em;
+                margin-bottom: 18px;
+            }
+
+            .podium-stage {
+                gap: 8px;
+            }
+
+            .podium-entry {
+                flex: 0 1 110px;
+            }
+
+            .podium-medal {
+                font-size: 1.4rem;
+            }
+
+            .podium-player-name {
+                font-size: 0.8rem;
+                max-width: 100px;
+            }
+
+            .podium-cinema {
+                font-size: 0.65rem;
+                max-width: 100px;
+            }
+
+            .podium-time {
+                font-size: 0.75rem;
+            }
+
+            .podium-pillar-1 {
+                height: 75px;
+            }
+
+            .podium-pillar-2 {
+                height: 55px;
+            }
+
+            .podium-pillar-3 {
+                height: 40px;
             }
         }
 
@@ -3433,6 +3587,38 @@
                 <div class="first-place-msg" id="first-place-msg" style="display: none;">
                     <span class="crown-icon">👑</span>
                     <span data-i18n="firstPlaceMsg">Jsi nejlepší, jsi totální legenda mezi kinaři!!!</span>
+                </div>
+            </div>
+
+            <!-- Winners Podium -->
+            <div class="winners-podium" id="winners-podium" style="display: none;">
+                <h3 class="winners-title">&#9733; Winners of 2026 &#9733;</h3>
+                <div class="podium-stage">
+                    <!-- 2nd place (silver) -->
+                    <div class="podium-entry">
+                        <div class="podium-medal">&#129352;</div>
+                        <div class="podium-player-name" id="podium-name-2"></div>
+                        <div class="podium-cinema" id="podium-cinema-2"></div>
+                        <div class="podium-time" id="podium-time-2"></div>
+                        <div class="podium-pillar podium-pillar-2"></div>
+                    </div>
+                    <!-- 1st place (gold) -->
+                    <div class="podium-entry">
+                        <div class="podium-crown">&#128081;</div>
+                        <div class="podium-medal">&#129351;</div>
+                        <div class="podium-player-name" id="podium-name-1"></div>
+                        <div class="podium-cinema" id="podium-cinema-1"></div>
+                        <div class="podium-time" id="podium-time-1"></div>
+                        <div class="podium-pillar podium-pillar-1"></div>
+                    </div>
+                    <!-- 3rd place (bronze) -->
+                    <div class="podium-entry">
+                        <div class="podium-medal">&#129353;</div>
+                        <div class="podium-player-name" id="podium-name-3"></div>
+                        <div class="podium-cinema" id="podium-cinema-3"></div>
+                        <div class="podium-time" id="podium-time-3"></div>
+                        <div class="podium-pillar podium-pillar-3"></div>
+                    </div>
                 </div>
             </div>
 
@@ -4927,7 +5113,7 @@
 
             const mobileIcon = '<svg class="mobile-icon" viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><rect x="5" y="2" width="14" height="20" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2"/><line x1="12" y1="18" x2="12" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
 
-            scores.slice(0, 20).forEach((score, index) => {
+            scores.forEach((score, index) => {
                 const row = document.createElement('tr');
                 if (score.id === currentPlayerScoreId) {
                     row.classList.add('highlight');
@@ -4947,6 +5133,41 @@
 
                 elements.leaderboardBody.appendChild(row);
             });
+
+            renderPodium(scores);
+        }
+
+        function renderPodium(scores) {
+            const podiumEl = document.getElementById('winners-podium');
+            if (!podiumEl) return;
+
+            // Deduplicate by name+cinema, keeping best (lowest) time
+            const bestByPlayer = {};
+            scores.forEach(s => {
+                const key = s.name.toLowerCase() + '|||' + s.cinema.toLowerCase();
+                if (!bestByPlayer[key] || s.time < bestByPlayer[key].time) {
+                    bestByPlayer[key] = s;
+                }
+            });
+
+            const unique = Object.values(bestByPlayer).sort((a, b) => a.time - b.time);
+
+            if (unique.length < 3) {
+                podiumEl.style.display = 'none';
+                podiumEl.classList.remove('visible');
+                return;
+            }
+
+            const top3 = unique.slice(0, 3);
+
+            for (let i = 0; i < 3; i++) {
+                const place = i + 1;
+                document.getElementById('podium-name-' + place).textContent = top3[i].name;
+                document.getElementById('podium-cinema-' + place).textContent = top3[i].cinema;
+                document.getElementById('podium-time-' + place).textContent = formatTime(top3[i].time);
+            }
+
+            podiumEl.classList.add('visible');
         }
 
         function escapeHtml(text) {
